@@ -8,6 +8,9 @@ class GameScene extends Phaser.Scene {
 
     const mapW = jsonData.width  * CFG.TILE_SIZE;   
     const mapH = jsonData.height * CFG.TILE_SIZE;   
+    this._mapData = jsonData;
+    this._tileW = jsonData.tilewidth ?? CFG.TILE_SIZE;
+    this._tileH = jsonData.tileheight ?? CFG.TILE_SIZE;
     this.physics.world.setBounds(0, 0, mapW, mapH);
     this.cameras.main.setBounds(0, 0, mapW, mapH);
     this._mapW = mapW;
@@ -73,7 +76,11 @@ class GameScene extends Phaser.Scene {
     this._buildYSprites(sorted.aboveEntries, sorted.houseClusterTiles);
     this._buildDynamicProps(jsonData.layers);
 
-    this._player = new PlayerSystem(this, CFG.PLAYER.START_X, CFG.PLAYER.START_Y);
+    const playerSpawn = CFG.PLAYER.SPAWN ?? {
+      x: CFG.PLAYER.START_X,
+      y: CFG.PLAYER.START_Y,
+    };
+    this._player = new PlayerSystem(this, playerSpawn.x, playerSpawn.y);
     this._player.sprite.setCollideWorldBounds(true);
     this.cameras.main.setZoom(2.0);
     this.cameras.main.startFollow(this._player.sprite, true, 0.08, 0.08);
@@ -105,9 +112,19 @@ class GameScene extends Phaser.Scene {
     this._trees      = new TreeSystem(this,    treeSpawns, inv, this._player);
     this._farming    = new FarmingSystem(this, inv, this._player, bedPositions);
     this._fruitTrees = new FruitTreeSystem(this, rawDynamicProps, inv, this._player);
+    this._enemySystem = new EnemySpawnSystem(
+      this,
+      jsonData,
+      CFG.ENEMIES?.SPAWNS ?? [],
+      { enabled: CFG.ENEMIES?.ENABLED === true }
+    );
 
     this._mining.linkStaticProps(this.children.list);
     this._farming.enableMousePlanting();
+
+    if (DEBUG_GRID === true) {
+      this._debugGrid = new DebugGridSystem(this, jsonData);
+    }
 
     this.time.delayedCall(100, () => {
       const uiScene = this.scene.get('UIScene');

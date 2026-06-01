@@ -3,6 +3,10 @@ Original prompt: Ajouter l'icone de l'epee dans l'inventaire, permettre son drag
 Progress:
 - UI resize pass: increased bottom hotbar by 50%, anchored it to the bottom edge, and increased top-left player HUD by 50%.
 - Verified UI resize in Playwright: hotbar slot size is 72px, hotbar strip bottom aligns with viewport bottom, player HUD scale is 2.7, TAB/drag/drop/ZQSD/sword attack still work.
+- Player spawn moved to PlayerSpawn at x=1295, y=1488 on the farm path shown in the screenshot.
+- Hotbar bottom anchoring fixed by rendering the cropped visible hotbar strip and relayouting it on scale resize.
+- Added DEBUG_GRID=false development grid gate, DebugGridSystem, and tile-based enemy spawn conversion config.
+- DEBUG_GRID left enabled for development so G can show/hide the coordinate grid.
 - Found sword icon already in project: assets/items/weapon_icon_2/Icons/Icon_4_06.png.
 - Inventory and hotbar systems already support draggable inventory items and active slot selection.
 - Pointer attack is centralized in GameScene._handlePointerAttack.

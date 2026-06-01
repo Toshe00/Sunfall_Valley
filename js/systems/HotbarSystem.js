@@ -3,13 +3,13 @@ class HotbarSystem {
 
   static IMG_W = 2130;
   static IMG_H = 1198;
-  static STRIP = { x:16, y:531, w:2094, h:423 };
+  static STRIP = { x:16, y:531, w:2094, h:259 };
   static SEPS  = [24,265,469,672,876,1079,1267,1470,1673,1864,2102];
   static N     = 10;
 
   static get SC() { return 72 / 207; }
   static get DW() { return Math.round(2094 * HotbarSystem.SC); }
-  static get DH() { return Math.round(423  * HotbarSystem.SC); }
+  static get DH() { return Math.round(HotbarSystem.STRIP.h * HotbarSystem.SC); }
   static get SZ() { return 72; }
 
   constructor(scene, inventorySystem) {
@@ -23,6 +23,7 @@ class HotbarSystem {
 
     this._ui       = [];
     this._built    = false;
+    this._layoutHotbar = () => this._layout();
 
     this._build();
   }
@@ -49,59 +50,35 @@ class HotbarSystem {
   refresh() { this._render(); }
 
   _build() {
-    const { width:W, height:H } = this.scene.scale;
-    const SC = HotbarSystem.SC;
     const S  = HotbarSystem.STRIP;
-    const DW = HotbarSystem.DW;
-    const DH = HotbarSystem.DH;
     const SZ = HotbarSystem.SZ;
 
-    this._ox = Math.round((W - DW) / 2);
-    this._oy = H - DH;
+    const tex = this.scene.textures.get('ui_hotbar');
+    if (tex && !tex.frames.hotbar_strip) {
+      tex.add('hotbar_strip', 0, S.x, S.y, S.w, S.h);
+    }
 
-    const imgSX = DW / S.w;
-    const imgSY = DH / S.h;
-    const bgX   = this._ox - Math.round(S.x * imgSX);
-    const bgY   = this._oy - Math.round(S.y * imgSY);
-
-    this._bgX = bgX; this._bgY = bgY;
-    this._imgSX = imgSX; this._imgSY = imgSY;
-
-    this._bg = this.scene.add.image(bgX, bgY, 'ui_hotbar')
+    this._bg = this.scene.add.image(0, 0, 'ui_hotbar', 'hotbar_strip')
       .setOrigin(0, 0)
-      .setDisplaySize(Math.round(HotbarSystem.IMG_W * imgSX),
-                      Math.round(HotbarSystem.IMG_H * imgSY))
       .setScrollFactor(0)
       .setDepth(80);
 
-    const SEPS = HotbarSystem.SEPS;
-
     for (let i = 0; i < HotbarSystem.N; i++) {
-      const nCX = (SEPS[i] + SEPS[i+1]) / 2;
-      const nCY = 670;
-
-      const cx = bgX + Math.round(nCX * imgSX);
-      const cy = bgY + Math.round(nCY * imgSY);
-
-      const rect = new Phaser.Geom.Rectangle(cx - SZ/2, cy - SZ/2, SZ, SZ);
-
       const hl = this.scene.add.graphics()
         .setScrollFactor(0).setDepth(82);
-      hl.lineStyle(5, 0xFFD700, 1.0);
-      hl.strokeRect(cx - SZ/2 + 1, cy - SZ/2 + 1, SZ - 2, SZ - 2);
       hl.setVisible(false);
 
-      const icon = this.scene.add.image(cx, cy, '__DEFAULT')
+      const icon = this.scene.add.image(0, 0, '__DEFAULT')
         .setScrollFactor(0).setDepth(83)
         .setVisible(false);
 
       const qty = this.scene.add.text(
-        cx + SZ/2 - 1, cy + SZ/2 - 1, '',
+        0, 0, '',
         { fontFamily:'Arial', fontSize:'30px', fontStyle:'bold', resolution:2,
           color:'#ffffff', stroke:'#000000', strokeThickness:6 }
       ).setOrigin(1, 1).setScrollFactor(0).setDepth(84).setScale(0.5);
 
-      const zone = this.scene.add.rectangle(cx, cy, SZ, SZ)
+      const zone = this.scene.add.rectangle(0, 0, SZ, SZ)
         .setScrollFactor(0).setDepth(85)
         .setInteractive({ useHandCursor: true, draggable: true });
 
@@ -117,7 +94,7 @@ class HotbarSystem {
       zone.on('drag',      (ptr) => this._onPointerMove(ptr));
       zone.on('dragend',   (ptr) => this._onPointerUp(ptr));
 
-      this._ui.push({ hl, icon, qty, zone, cx, cy, rect });
+      this._ui.push({ hl, icon, qty, zone, cx:0, cy:0, rect:new Phaser.Geom.Rectangle(0, 0, SZ, SZ) });
     }
 
     this.scene.input.on('pointermove', (ptr) => {
@@ -126,8 +103,53 @@ class HotbarSystem {
     this.scene.input.on('pointerup', (ptr) => {
       if (this._drag?.src === 'inventory') this._onPointerUp(ptr);
     });
+    this.scene.scale.on('resize', this._layoutHotbar);
 
     this._built = true;
+    this._layout();
+    this._render();
+  }
+
+  _layout() {
+    if (!this._bg || !this._ui) return;
+
+    const { width:W, height:H } = this.scene.scale;
+    const S  = HotbarSystem.STRIP;
+    const DW = HotbarSystem.DW;
+    const DH = HotbarSystem.DH;
+    const SZ = HotbarSystem.SZ;
+
+    this._ox = Math.round((W - DW) / 2);
+    this._oy = H - DH;
+    this._imgSX = DW / S.w;
+    this._imgSY = DH / S.h;
+
+    this._bg
+      .setPosition(this._ox, this._oy)
+      .setDisplaySize(DW, DH)
+      .setScrollFactor(0);
+
+    for (let i = 0; i < HotbarSystem.N; i++) {
+      const ui = this._ui[i];
+      const nCX = (HotbarSystem.SEPS[i] + HotbarSystem.SEPS[i+1]) / 2;
+      const nCY = 670;
+      const cx = this._ox + Math.round((nCX - S.x) * this._imgSX);
+      const cy = this._oy + Math.round((nCY - S.y) * this._imgSY);
+
+      ui.cx = cx;
+      ui.cy = cy;
+      ui.rect.setTo(cx - SZ / 2, cy - SZ / 2, SZ, SZ);
+
+      ui.hl.clear();
+      ui.hl.lineStyle(5, 0xFFD700, 1.0);
+      ui.hl.strokeRect(cx - SZ/2 + 1, cy - SZ/2 + 1, SZ - 2, SZ - 2);
+
+      ui.icon.setPosition(cx, cy).setScrollFactor(0);
+      ui.qty.setPosition(cx + SZ/2 - 1, cy + SZ/2 - 1).setScrollFactor(0);
+      ui.zone.setPosition(cx, cy).setScrollFactor(0);
+      ui.glowRect?.setPosition(cx, cy).setScrollFactor(0);
+    }
+
     this._render();
   }
 

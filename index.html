@@ -28,6 +28,12 @@
 <script src="js/systems/TreeSystem.js"></script>
 <script src="js/systems/FarmingSystem.js"></script>
 <script src="js/systems/FruitTreeSystem.js"></script>
+<script src="js/systems/EnemySpawnSystem.js"></script>
+<script>
+  if (DEBUG_GRID === true) {
+    document.write('<script src="js/systems/DebugGridSystem.js"><\/script>');
+  }
+</script>
 <script src="js/systems/DayNightSystem.js"></script>
 <script src="js/systems/ClockHUD.js"></script>
 <script src="js/systems/HealthBarHUD.js"></script>

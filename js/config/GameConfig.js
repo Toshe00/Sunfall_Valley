@@ -1,5 +1,8 @@
 // js/config/GameConfig.js
+const DEBUG_GRID = true;
+
 const CFG = {
+  DEBUG_GRID,
 
   // ── Map ──────────────────────────────────────────────────────────────────
   MAP_JSON : 'assets/world/2dmap.json?v=2',
@@ -99,8 +102,9 @@ const CFG = {
   PLAYER: {
     SPEED        : 100,
     RUN_SPEED    : 160,
-    START_X      : 552,
-    START_Y      : 1488,  // farm area center in the 180x140 map
+    START_X      : 1295,
+    START_Y      : 1488,
+    SPAWN        : { name:'PlayerSpawn', x:1295, y:1488 },
     SCALE        : 1.0,
     BODY_W       : 12,
     BODY_H       : 18,
@@ -169,6 +173,15 @@ const CFG = {
       bronze_pickaxe: { tier:2, label:'Bronze Pickaxe' },
       gold_pickaxe:   { tier:3, label:'Gold Pickaxe'   },
     },
+  },
+
+  ENEMIES: {
+    ENABLED: false,
+    SPAWNS: [
+      { type: 'goblin', tileX: 35, tileY: 90 },
+      { type: 'slime',  tileX: 42, tileY: 95 },
+      { type: 'golem',  tileX: 50, tileY: 90 },
+    ],
   },
 
   // ── Inventory ────────────────────────────────────────────────────────────
