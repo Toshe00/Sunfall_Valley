@@ -5,7 +5,14 @@ class EnemySpawnSystem {
     this.tileW = mapData.tilewidth ?? CFG.TILE_SIZE;
     this.tileH = mapData.tileheight ?? CFG.TILE_SIZE;
     this.enabled = options.enabled === true;
+    this.respawnMs = options.respawnMs ?? CFG.ENEMIES?.RESPAWN_MS ?? 600000;
     this.spawns = spawns.map((spawn) => this._toPixelSpawn(spawn));
+    this._spawnRecords = this.spawns.map((spawn, index) => ({
+      id: index,
+      spawn,
+      enemy: null,
+      respawnEvent: null,
+    }));
     this.enemies = [];
     this.group = this.scene.physics.add.group({ allowGravity: false });
     this._collider = null;
@@ -44,22 +51,29 @@ class EnemySpawnSystem {
   }
 
   _spawnAll() {
-    this.spawns.forEach((spawn) => this._spawnEnemy(spawn));
+    this._spawnRecords.forEach((record) => this._spawnEnemy(record));
   }
 
-  _spawnEnemy(spawn) {
-    if (spawn.type !== 'slime') return null;
+  _spawnEnemy(recordOrSpawn) {
+    const record = recordOrSpawn?.spawn ? recordOrSpawn : null;
+    const spawn = record?.spawn ?? recordOrSpawn;
+    if (record?.enemy?.active && !record.enemy.getData('dead')) return record.enemy;
+    const type = spawn.type ?? 'slime';
+    const idleTexture = `enemy_${type}_idle`;
+    if (!this.scene.textures.exists(idleTexture)) return null;
 
-    const def = this._typeDef('slime');
-    const enemy = this.scene.physics.add.sprite(spawn.x, spawn.y, 'enemy_slime_idle')
+    const def = this._typeDef(type);
+    const enemy = this.scene.physics.add.sprite(spawn.x, spawn.y, idleTexture)
       .setScale(def.scale)
       .setDepth(spawn.y)
       .setData('enemy', true)
-      .setData('type', 'slime')
+      .setData('type', type)
       .setData('tileX', spawn.tileX)
       .setData('tileY', spawn.tileY)
       .setData('spawnX', spawn.x)
       .setData('spawnY', spawn.y)
+      .setData('spawnId', record?.id ?? -1)
+      .setData('spawnRecord', record)
       .setData('hp', spawn.hp ?? def.hp)
       .setData('maxHp', spawn.hp ?? def.hp)
       .setData('state', 'idle')
@@ -75,10 +89,12 @@ class EnemySpawnSystem {
     enemy.body.setCollideWorldBounds(true);
     enemy.body.setSize(def.bodyW, def.bodyH);
     enemy.body.setOffset(def.bodyOffsetX, def.bodyOffsetY);
-    enemy.play('slime_idle_down');
+    const idleAnim = this._animKey(enemy, 'idle', 'down');
+    if (this.scene.anims.exists(idleAnim)) enemy.play(idleAnim);
 
     this.group.add(enemy);
     this.enemies.push(enemy);
+    if (record) record.enemy = enemy;
     return enemy;
   }
 
@@ -118,9 +134,10 @@ class EnemySpawnSystem {
     }
 
     const facing = this._faceToward(enemy, player.x, player.y);
+    const animKey = this._animKey(enemy, 'attack', facing);
     enemy.setData('state', 'attack');
     enemy.setData('nextAttackAt', time + def.attackCooldownMs);
-    enemy.play(`slime_attack_${facing}`, true);
+    enemy.play(animKey, true);
 
     this.scene.time.delayedCall(def.attackHitDelayMs, () => {
       if (!enemy.active || enemy.getData('dead') || enemy.getData('state') !== 'attack') return;
@@ -134,7 +151,7 @@ class EnemySpawnSystem {
     });
 
     enemy.once('animationcomplete', (anim) => {
-      if (!enemy.active || anim.key !== `slime_attack_${facing}`) return;
+      if (!enemy.active || anim.key !== animKey) return;
       if (!enemy.getData('dead')) enemy.setData('state', 'idle');
     });
   }
@@ -208,7 +225,7 @@ class EnemySpawnSystem {
   _play(enemy, anim, facing = null) {
     if (!enemy.active || enemy.getData('dead')) return;
     const dir = facing ?? enemy.getData('facing') ?? 'down';
-    const key = `slime_${anim}_${dir}`;
+    const key = this._animKey(enemy, anim, dir);
     if (enemy.anims.currentAnim?.key !== key) enemy.play(key, true);
   }
 
@@ -227,31 +244,52 @@ class EnemySpawnSystem {
 
   _hurt(enemy) {
     const facing = enemy.getData('facing') ?? 'down';
+    const animKey = this._animKey(enemy, 'hurt', facing);
     enemy.setData('state', 'hurt');
     enemy.body.setVelocity(0, 0);
-    enemy.play(`slime_hurt_${facing}`, true);
+    enemy.play(animKey, true);
     enemy.once('animationcomplete', (anim) => {
-      if (!enemy.active || anim.key !== `slime_hurt_${facing}`) return;
+      if (!enemy.active || anim.key !== animKey) return;
       if (!enemy.getData('dead')) enemy.setData('state', 'idle');
     });
   }
 
   _kill(enemy) {
+    if (enemy.getData('dead')) return;
     enemy.setData('dead', true);
     enemy.setData('state', 'death');
     enemy.body.setVelocity(0, 0);
     enemy.body.enable = false;
 
     const facing = enemy.getData('facing') ?? 'down';
-    enemy.play(`slime_death_${facing}`, true);
+    const animKey = this._animKey(enemy, 'death', facing);
+    enemy.play(animKey, true);
+    this._scheduleRespawn(enemy.getData('spawnRecord'));
     enemy.once('animationcomplete', () => this._remove(enemy));
     this.scene.time.delayedCall(1200, () => this._remove(enemy));
   }
 
   _remove(enemy) {
     if (!enemy || !enemy.active) return;
+    const record = enemy.getData?.('spawnRecord');
+    if (record?.enemy === enemy) record.enemy = null;
     this.enemies = this.enemies.filter((item) => item !== enemy);
     this.group.remove(enemy, true, true);
+  }
+
+  _scheduleRespawn(record) {
+    if (!record || record.respawnEvent) return;
+    record.respawnEvent = this.scene.time.delayedCall(this.respawnMs, () => {
+      record.respawnEvent = null;
+      this._respawnRecord(record);
+    });
+  }
+
+  _respawnRecord(record) {
+    if (!this.enabled || !record) return null;
+    if (record.enemy?.active && !record.enemy.getData('dead')) return record.enemy;
+    record.enemy = null;
+    return this._spawnEnemy(record);
   }
 
   _isNearSpawn(x, y, sx, sy, radius) {
@@ -261,18 +299,27 @@ class EnemySpawnSystem {
   }
 
   _typeDef(type) {
-    return CFG.ENEMIES?.TYPES?.[type] ?? CFG.ENEMIES?.TYPES?.slime ?? {};
+    const fallback = CFG.ENEMIES?.TYPES?.slime ?? {};
+    return { ...fallback, ...(CFG.ENEMIES?.TYPES?.[type] ?? {}) };
+  }
+
+  _animKey(enemy, anim, facing) {
+    const type = enemy.getData('type') ?? 'slime';
+    return `${type}_${anim}_${facing}`;
   }
 
   _ensureAnimations() {
-    if (this.scene.anims.exists('slime_idle_down')) return;
-
     const row = { down: 0, up: 1, left: 2, right: 3 };
-    const make = (anim, frames, fps, repeat) => {
+    const make = (type, anim, frames, fps, repeat) => {
+      const texture = `enemy_${type}_${anim}`;
+      if (!this.scene.textures.exists(texture)) return;
+
       for (const [dir, rowIndex] of Object.entries(row)) {
+        const key = `${type}_${anim}_${dir}`;
+        if (this.scene.anims.exists(key)) continue;
         this.scene.anims.create({
-          key: `slime_${anim}_${dir}`,
-          frames: this.scene.anims.generateFrameNumbers(`enemy_slime_${anim}`, {
+          key,
+          frames: this.scene.anims.generateFrameNumbers(texture, {
             start: rowIndex * frames,
             end: rowIndex * frames + frames - 1,
           }),
@@ -282,12 +329,14 @@ class EnemySpawnSystem {
       }
     };
 
-    const sheets = CFG.ENEMIES?.ASSETS?.slime?.sheets ?? {};
-    make('idle',   sheets.idle?.frames   ?? 6,  7, -1);
-    make('walk',   sheets.walk?.frames   ?? 8,  9, -1);
-    make('run',    sheets.run?.frames    ?? 8, 11, -1);
-    make('attack', sheets.attack?.frames ?? 10, 12,  0);
-    make('hurt',   sheets.hurt?.frames   ?? 5, 10,  0);
-    make('death',  sheets.death?.frames  ?? 10, 10, 0);
+    for (const [type, asset] of Object.entries(CFG.ENEMIES?.ASSETS ?? {})) {
+      const sheets = asset?.sheets ?? {};
+      make(type, 'idle',   sheets.idle?.frames   ?? 6,  7, -1);
+      make(type, 'walk',   sheets.walk?.frames   ?? 8,  9, -1);
+      make(type, 'run',    sheets.run?.frames    ?? 8, 11, -1);
+      make(type, 'attack', sheets.attack?.frames ?? 10, 12,  0);
+      make(type, 'hurt',   sheets.hurt?.frames   ?? 5, 10,  0);
+      make(type, 'death',  sheets.death?.frames  ?? 10, 10, 0);
+    }
   }
 }

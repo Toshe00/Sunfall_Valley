@@ -177,12 +177,13 @@ const CFG = {
 
   ENEMIES: {
     ENABLED: true,
+    RESPAWN_MS: 10 * 60 * 1000,
     SPAWNS: [
       { type: 'slime', tileX: 79, tileY: 112 },
     ],
     TYPES: {
       slime: {
-        hp: 25,
+        hp: 75,
         damage: 5,
         speed: 34,
         wanderSpeed: 16,
@@ -196,6 +197,12 @@ const CFG = {
         bodyOffsetX: 23,
         bodyOffsetY: 38,
         scale: 1.0,
+      },
+      goblin: {
+        hp: 120,
+      },
+      golem: {
+        hp: 300,
       },
     },
     ASSETS: {
