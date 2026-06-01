@@ -77,6 +77,16 @@ class GameScene extends Phaser.Scene {
     this._player.sprite.setCollideWorldBounds(true);
     this.cameras.main.setZoom(2.0);
     this.cameras.main.startFollow(this._player.sprite, true, 0.08, 0.08);
+    this._lastAttackHits = 0;
+    this.events.on('player-health-changed', (current, max) => {
+      this.registry.set('playerHealth', { current, max });
+      this.scene.get('UIScene')?._healthBar?.setHealth(current, max);
+    });
+    this.events.on('player-death', () => {
+      this.registry.set('playerDead', true);
+    });
+    this.events.on('damage-player', (amount = 10) => this.damagePlayer(amount));
+    this.scene.get('UIScene')?._healthBar?.setHealth(this._player.health, this._player.maxHealth);
 
     this._buildCollisions(jsonData.layers);
 
@@ -107,6 +117,7 @@ class GameScene extends Phaser.Scene {
     });
 
     this._interactKey = this.input.keyboard.addKey(CFG.KEY_INTERACT);
+    this.input.on('pointerdown', this._handlePointerAttack, this);
     this.registry.set('fps', 0);
   }
 
@@ -145,6 +156,110 @@ class GameScene extends Phaser.Scene {
       }
       this._player.playAttack();
     }
+  }
+
+  _handlePointerAttack(pointer) {
+    if (pointer.button !== 0 || this._player?.isDead) return;
+    if (this.scene.get('UIScene')?._inventory?.isOpen?.()) return;
+
+    this._player.playAttack({
+      onHit: () => {
+        this._lastAttackHits = this._damageEnemiesInAttackBox();
+        this.registry.set('lastAttackHits', this._lastAttackHits);
+      },
+    });
+  }
+
+  damagePlayer(amount = 10) {
+    return this._player?.takeDamage(amount) ?? false;
+  }
+
+  _damageEnemiesInAttackBox() {
+    const rect = this._getAttackBox();
+    const targets = this._collectEnemyTargets();
+    let hits = 0;
+
+    for (const target of targets) {
+      if (!target || target === this._player.sprite || target.active === false) continue;
+      const bounds = this._getTargetBounds(target);
+      if (!bounds || !Phaser.Geom.Intersects.RectangleToRectangle(rect, bounds)) continue;
+      if (this._damageEnemyTarget(target, CFG.PLAYER.ATTACK_DAMAGE ?? 25)) hits++;
+    }
+    return hits;
+  }
+
+  _getAttackBox() {
+    const p = this._player;
+    const w = CFG.PLAYER.ATTACK_ARC_W ?? 44;
+    const h = CFG.PLAYER.ATTACK_ARC_H ?? 38;
+    const r = CFG.PLAYER.ATTACK_RANGE ?? 42;
+    const offsets = {
+      down : { x: 0,  y: r },
+      up   : { x: 0,  y: -r },
+      left : { x: -r, y: 0 },
+      right: { x: r,  y: 0 },
+    };
+    const o = offsets[p.facing] ?? offsets.down;
+    return new Phaser.Geom.Rectangle(
+      p.x + o.x - w / 2,
+      p.y + o.y - h / 2,
+      w,
+      h
+    );
+  }
+
+  _collectEnemyTargets() {
+    const sources = [
+      this._enemySystem?.enemies,
+      this._enemySystem?.group,
+      this._enemies,
+      this.enemies,
+      this.enemyGroup,
+    ];
+    const out = [];
+
+    const addSource = (source) => {
+      if (!source) return;
+      if (Array.isArray(source)) {
+        out.push(...source);
+      } else if (source.getChildren) {
+        out.push(...source.getChildren());
+      } else if (source.children?.entries) {
+        out.push(...source.children.entries);
+      }
+    };
+    sources.forEach(addSource);
+
+    for (const obj of this.children.list) {
+      if (obj?.getData?.('enemy') || obj?.isEnemy || obj?.enemy) out.push(obj);
+    }
+
+    return Array.from(new Set(out));
+  }
+
+  _getTargetBounds(target) {
+    if (target.getBounds) return target.getBounds();
+    const body = target.body;
+    if (body) {
+      return new Phaser.Geom.Rectangle(body.x, body.y, body.width, body.height);
+    }
+    return null;
+  }
+
+  _damageEnemyTarget(target, amount) {
+    if (typeof target.takeDamage === 'function') return target.takeDamage(amount) !== false;
+    if (typeof target.receiveDamage === 'function') return target.receiveDamage(amount) !== false;
+    if (typeof target.damage === 'function') return target.damage(amount) !== false;
+    if (typeof target.hit === 'function') return target.hit(amount) !== false;
+
+    const currentHp = target.getData?.('hp');
+    if (typeof currentHp === 'number') {
+      const nextHp = Math.max(0, currentHp - amount);
+      target.setData('hp', nextHp);
+      if (nextHp <= 0) target.destroy?.();
+      return true;
+    }
+    return false;
   }
 
   static get HIDE_LAYER_IDS() { return new Set(); }

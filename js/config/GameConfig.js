@@ -105,6 +105,14 @@ const CFG = {
     BODY_W       : 12,
     BODY_H       : 18,
     INTERACT_DIST: 72,
+    MAX_HEALTH    : 100,
+    ATTACK_DAMAGE : 25,
+    ATTACK_RANGE  : 42,
+    ATTACK_ARC_W  : 44,
+    ATTACK_ARC_H  : 38,
+    ATTACK_COOLDOWN_MS : 550,
+    ATTACK_HIT_DELAY_MS: 180,
+    HURT_INVULN_MS     : 700,
     OFFSET_Y     : 28,
     FRAME_W      : 64,
     FRAME_H      : 64,
@@ -170,6 +178,6 @@ const CFG = {
 
   // ── Hotkeys ──────────────────────────────────────────────────────────────
   KEY_INTERACT : 'F',
-  KEY_INVENTORY: 'I',
+  KEY_INVENTORY: 'TAB',
   KEY_RUN      : 'SHIFT',
 };

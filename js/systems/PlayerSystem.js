@@ -10,6 +10,10 @@ class PlayerSystem {
     this.scene   = scene;
     this._facing = 'down';
     this._state  = 'idle';
+    this._maxHealth = CFG.PLAYER.MAX_HEALTH ?? 100;
+    this._health = this._maxHealth;
+    this._nextAttackAt = 0;
+    this._invulnerableUntil = 0;
     if (!scene.anims.exists('idle_down')) this._buildAnimations();
     this._createSprite(x, y);
     this._createKeys();
@@ -19,21 +23,113 @@ class PlayerSystem {
   get x()      { return this._sprite.x; }
   get y()      { return this._sprite.y; }
   get facing() { return this._facing; }
+  get health() { return this._health; }
+  get maxHealth() { return this._maxHealth; }
+  get isDead() { return this._state === 'dead'; }
 
   update() {
-    if (this._state === 'attack') return;
+    if (this._state === 'dead') {
+      this._sprite.body.setVelocity(0, 0);
+      return;
+    }
+    if (this._state === 'attack' || this._state === 'hurt') return;
     this._handleMovement();
     this._sprite.setDepth(this._sprite.y);
   }
 
-  playAttack(onComplete) {
-    if (this._state === 'attack') return;
+  playAttack(options = null) {
+    if (this._state === 'dead' || this._state === 'hurt' || this._state === 'attack') return false;
+
+    const now = this.scene.time.now;
+    if (now < this._nextAttackAt) return false;
+    this._nextAttackAt = now + (CFG.PLAYER.ATTACK_COOLDOWN_MS ?? 550);
+
+    const onHit = typeof options === 'object' ? options?.onHit : null;
+    const onComplete = typeof options === 'function' ? options : options?.onComplete;
+    const animKey = `attack_${this._facing}`;
+
     this._state = 'attack';
-    this._sprite.play(`attack_${this._facing}`, true);
-    this._sprite.once('animationcomplete', () => {
+    this._sprite.body.setVelocity(0, 0);
+    this._sprite.setAlpha(1);
+    this._sprite.play(animKey, true);
+
+    this.scene.time.delayedCall(CFG.PLAYER.ATTACK_HIT_DELAY_MS ?? 180, () => {
+      if (this._state === 'attack' && this._sprite.anims.currentAnim?.key === animKey) {
+        onHit?.();
+      }
+    });
+
+    this._sprite.once('animationcomplete', (anim) => {
+      if (anim.key !== animKey || this._state !== 'attack') return;
       this._state = 'idle';
       if (onComplete) onComplete();
     });
+    return true;
+  }
+
+  takeDamage(amount = 10) {
+    if (this._state === 'dead') return false;
+
+    const now = this.scene.time.now;
+    if (now < this._invulnerableUntil) return false;
+    this._invulnerableUntil = now + (CFG.PLAYER.HURT_INVULN_MS ?? 700);
+
+    this._health = Math.max(0, this._health - amount);
+    this._emitHealthChanged();
+
+    if (this._health <= 0) {
+      this._playDeath();
+    } else {
+      this._playHurt();
+    }
+    return true;
+  }
+
+  heal(amount = 10) {
+    if (this._state === 'dead') return false;
+    this._health = Math.min(this._maxHealth, this._health + amount);
+    this._emitHealthChanged();
+    return true;
+  }
+
+  _playHurt() {
+    const animKey = `hurt_${this._facing}`;
+    this._state = 'hurt';
+    this._sprite.body.setVelocity(0, 0);
+    this._sprite.play(animKey, true);
+
+    this.scene.tweens.killTweensOf(this._sprite);
+    this._sprite.setAlpha(0.55);
+    this.scene.tweens.add({
+      targets: this._sprite,
+      alpha: 1,
+      duration: 90,
+      yoyo: true,
+      repeat: 2,
+      onComplete: () => this._sprite.setAlpha(1),
+    });
+
+    const recover = () => {
+      if (this._state !== 'hurt') return;
+      this._sprite.setAlpha(1);
+      this._state = 'idle';
+    };
+
+    this._sprite.once('animationcomplete', (anim) => {
+      if (anim.key === animKey) recover();
+    });
+    this.scene.time.delayedCall(650, recover);
+  }
+
+  _playDeath() {
+    const animKey = `death_${this._facing}`;
+    this._state = 'dead';
+    this.scene.tweens.killTweensOf(this._sprite);
+    this._sprite.setAlpha(1);
+    this._sprite.body.setVelocity(0, 0);
+    this._sprite.body.enable = false;
+    this._sprite.play(animKey, true);
+    this.scene.events.emit('player-death');
   }
 
   _createSprite(x, y) {
@@ -47,6 +143,11 @@ class PlayerSystem {
     );
     //this._sprite.setDepth(10);  // Above most map tiles (depth 0)
     this._sprite.play('idle_down');
+    this._emitHealthChanged();
+  }
+
+  _emitHealthChanged() {
+    this.scene.events.emit('player-health-changed', this._health, this._maxHealth);
   }
 
   _createKeys() {
@@ -59,6 +160,8 @@ class PlayerSystem {
       a    : Phaser.Input.Keyboard.KeyCodes.A,
       s    : Phaser.Input.Keyboard.KeyCodes.S,
       d    : Phaser.Input.Keyboard.KeyCodes.D,
+      z    : Phaser.Input.Keyboard.KeyCodes.Z,
+      q    : Phaser.Input.Keyboard.KeyCodes.Q,
       shift: Phaser.Input.Keyboard.KeyCodes.SHIFT,
     });
   }
@@ -70,9 +173,9 @@ class PlayerSystem {
     const speed = isRun ? p.RUN_SPEED : p.SPEED;
 
     let vx = 0, vy = 0;
-    if (k.left.isDown  || k.a.isDown)  vx = -speed;
+    if (k.left.isDown  || k.a.isDown || k.q.isDown)  vx = -speed;
     if (k.right.isDown || k.d.isDown)  vx =  speed;
-    if (k.up.isDown    || k.w.isDown)  vy = -speed;
+    if (k.up.isDown    || k.w.isDown || k.z.isDown)  vy = -speed;
     if (k.down.isDown  || k.s.isDown)  vy =  speed;
     if (vx && vy) { vx *= 0.707; vy *= 0.707; }
 

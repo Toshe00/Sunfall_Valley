@@ -38,8 +38,13 @@ class UIScene extends Phaser.Scene {
     });
 
     // Toggle key
-    this.input.keyboard.addKey(CFG.KEY_INVENTORY)
-      .on('down', () => this._inventory.toggle());
+    const inventoryKeyCode = Phaser.Input.Keyboard.KeyCodes[CFG.KEY_INVENTORY] ?? CFG.KEY_INVENTORY;
+    this.input.keyboard.addCapture(inventoryKeyCode);
+    this.input.keyboard.addKey(inventoryKeyCode, true)
+      .on('down', (_key, event) => {
+        event?.preventDefault();
+        this._inventory.toggle();
+      });
 
 
   }
@@ -115,8 +120,8 @@ class UIScene extends Phaser.Scene {
     const W = this.scale.width, H = this.scale.height;
 
     const msgs = [
-      { text:'🎮 Welcome! Use Arrow Keys / WASD to move',                                    delay:500   },
-      { text:'🎒 Press [I] to open your Inventory',                                          delay:3000  },
+      { text:'🎮 Welcome! Use Arrow Keys / WASD / ZQSD to move',                                    delay:500   },
+      { text:'🎒 Press [TAB] to open your Inventory',                                          delay:3000  },
       { text:'🌱 Select a seed → walk to a farm plot → click a hole to plant',               delay:6000  },
       { text:'⛏️  [F] near rocks to mine  |  Match the exact pickaxe to the ore',            delay:9500  },
       { text:'🪓 [F] near trees to chop  |  Oak/Pine/Walnut Axe, or Gold Axe for ext. trees', delay:13000 },
