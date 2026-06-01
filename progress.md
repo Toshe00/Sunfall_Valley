@@ -7,6 +7,7 @@ Progress:
 - Hotbar bottom anchoring fixed by rendering the cropped visible hotbar strip and relayouting it on scale resize.
 - Added DEBUG_GRID=false development grid gate, DebugGridSystem, and tile-based enemy spawn conversion config.
 - DEBUG_GRID left enabled for development so G can show/hide the coordinate grid.
+- Debug grid labels now show visible tileX,tileY coordinates every 5 tiles, with a mouse tooltip for tile and pixel coordinates.
 - Found sword icon already in project: assets/items/weapon_icon_2/Icons/Icon_4_06.png.
 - Inventory and hotbar systems already support draggable inventory items and active slot selection.
 - Pointer attack is centralized in GameScene._handlePointerAttack.
