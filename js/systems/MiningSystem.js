@@ -36,8 +36,8 @@ class MiningSystem {
     mineable_bronzes:      'dp_assets/items/ore_tree/PNG/bronze/Bronze_big.png',
     mineable_iron:         'dp_assets/items/ore_tree/PNG/Iron/iron_big.png',
     mineable_gold:         'dp_assets/items/ore_tree/PNG/gold/gold_big.png',
-    undead_minable_stones: 'dp_assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/Crystal_shadow1_1.png',
-    mineable_lava_ores:    'dp_assets/world/top_map_extension/map/PNG/Objects_separately/Volcano4_dark_shadow_frame5.png',
+    undead_minable_stones: 'dp_assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Crystal_shadow1_1.png',
+    mineable_lava_ores:    'dp_assets/world/craftpix-net-688848-cave-tileset-top-down-pixel-art/PNG/Objects_separately/Volcano4_dark_shadow_frame5.png',
   };
 
   // Small leftover image (shown after mining, while respawning)
@@ -46,8 +46,8 @@ class MiningSystem {
     mineable_bronzes:      'dp_assets/items/ore_tree/PNG/bronze/Bronze_small.png',
     mineable_iron:         'dp_assets/items/ore_tree/PNG/Iron/Iron_small.png',
     mineable_gold:         'dp_assets/items/ore_tree/PNG/gold/gold_small.png',
-    undead_minable_stones: 'dp_assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/Crystal_shadow1_3.png',
-    mineable_lava_ores:    'dp_assets/world/top_map_extension/map/PNG/Objects_separately/Volcano4_dark_shadow_frame5.png',
+    undead_minable_stones: 'dp_assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Crystal_shadow1_3.png',
+    mineable_lava_ores:    'dp_assets/world/craftpix-net-688848-cave-tileset-top-down-pixel-art/PNG/Objects_separately/Volcano4_dark_shadow_frame5.png',
   };
 
   constructor(scene, spawnPoints, inventory, player) {
@@ -80,8 +80,8 @@ class MiningSystem {
   //      mineable_lava_ores    → Volcano4_dark_shadow_frame5.png (top extension)
   linkStaticProps(childList) {
     const STATIC_KEYS = {
-      undead_minable_stones: 'dp_assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/Crystal_shadow1_1.png',
-      mineable_lava_ores:    'dp_assets/world/top_map_extension/map/PNG/Objects_separately/Volcano4_dark_shadow_frame5.png',
+      undead_minable_stones: 'dp_assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Crystal_shadow1_1.png',
+      mineable_lava_ores:    'dp_assets/world/craftpix-net-688848-cave-tileset-top-down-pixel-art/PNG/Objects_separately/Volcano4_dark_shadow_frame5.png',
     };
 
     // Build a set of images already owned by a node as n.img — never link those.

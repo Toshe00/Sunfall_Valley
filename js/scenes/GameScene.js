@@ -156,22 +156,9 @@ class GameScene extends Phaser.Scene {
       pathToKey[rel] = entry.key;
     }
 
-    const tsxToKey = {
-      'top_map_extension/map/Tiled_files/Water_detilazation2.tsx':  'water_detilazation2_top',
-      'left_map_extention/map/Tiled_files/Water_detilazation2.tsx': 'water_detilazation2_left',
-    };
-
     return tilesets.map(ts => {
       if (!ts.image && ts.source) {
-        const texKey = tsxToKey[ts.source] ?? null;
-        if (!texKey) return { firstgid: ts.firstgid, img: null, cols: 1, animMap: {}, texKey: null };
-        
-        const tex = this.textures.get(texKey);
-        const img = tex?.source?.[0]?.image ?? null;
-        if (!img) return { firstgid: ts.firstgid, img: null, cols: 1, animMap: {}, texKey };
-        
-        const cols = Math.floor(img.naturalWidth / CFG.TILE_SIZE) || 37;
-        return { firstgid: ts.firstgid, img, cols, animMap: {}, texKey };
+        return { firstgid: ts.firstgid, img: null, cols: 1, animMap: {}, texKey: null };
       }
 
       if (!ts.image) {

@@ -1,6 +1,8 @@
 node_modules/
 .claude/
 .env
+.playwright-cli/
+test-results/
 *.zip
 *.rar
 __MACOSX/

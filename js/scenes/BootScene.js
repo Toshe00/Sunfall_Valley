@@ -45,13 +45,13 @@ class BootScene extends Phaser.Scene {
     this.load.image('oak_axe',    'assets/items/weapons/oak_axe.png');
     this.load.image('pine_axe',   'assets/items/weapons/pine_axe.png');
     this.load.image('walnut_axe', 'assets/items/weapons/walnut_axe.png');
-    this.load.image('gold_axe',   'assets/items/weapons/gold_axe.png');
+    this.load.image('gold_axe',   'assets/items/weapons/walnut_axe.png');
 
     // ── Pickaxes ──────────────────────────────────────────────────────────
     this.load.image('stone_pickaxe',  'assets/items/weapons/stone_pick_Axe.png');
     this.load.image('bronze_pickaxe', 'assets/items/weapons/Bronze_pick_Axe.png');
-    this.load.image('iron_pickaxe',   'assets/items/weapons/iron_pick_Axe.png');
-    this.load.image('gold_pickaxe',   'assets/items/weapons/gold_pick_axe.png');
+    this.load.image('iron_pickaxe',   'assets/items/weapons/iron_pick_axe.png');
+    this.load.image('gold_pickaxe',   'assets/items/weapons/iron_pick_axe.png');
 
     // ── Crop sheets + harvest icons ───────────────────────────────────────
     const cropKeys = Object.keys(FarmingSystem.CROP_TYPES);
@@ -85,10 +85,10 @@ class BootScene extends Phaser.Scene {
     this.load.image('inv_icon_gold',   'assets/items/ore_tree/PNG/gold/gold_small.png');
     // Undead ore inventory icon — the small crystal from the right extension
     this.load.image('inv_icon_undead_ore',
-      'assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/Crystal_shadow1_3.png');
+      'assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Crystal_shadow1_3.png');
     // Lava ore inventory icon — same Volcano4 image used as the ore prop
     this.load.image('inv_icon_lava_ore',
-      'assets/world/top_map_extension/map/PNG/Objects_separately/Volcano4_dark_shadow_frame5.png');
+      'assets/world/craftpix-net-688848-cave-tileset-top-down-pixel-art/PNG/Objects_separately/Volcano4_dark_shadow_frame5.png');
 
     // ── Wood inventory icons ──────────────────────────────────────────────
     this.load.image('inv_icon_oak_wood',    'assets/items/ore_tree/PNG/oak_wood_icon.png');
@@ -142,34 +142,6 @@ class BootScene extends Phaser.Scene {
     _dp('assets/items/trees/walnut_tree.png');
 
     // ── TOP-MAP EXTENSION dynamic prop objects (128px) ────────────────────
-    [
-      'Building1_dark_shadow','Building2_light_shadow','cocoon_web',
-      'Demon_scull_dark_shadow',
-      'Dinosaur_skeleton_part1_dark_shadow','Dinosaur_skeleton_part2_dark_shadow',
-      'Gates_dark_shadow3',
-      'white_crystal_light_shadow2','white_crystal_light_shadow3',
-    ].forEach(f => _dp(`assets/world/top_map_extension/Object/PNG/Objects_separately/128/${f}.png`));
-
-    // 256px
-    ['centipede_dark_shadow2'].forEach(f =>
-      _dp(`assets/world/top_map_extension/Object/PNG/Objects_separately/256/${f}.png`));
-
-    // 64px
-    [
-      'Beige_rpck_dark_shadow3','Beige_rpck_light_shadow2','Beige_rpck_light_shadow3',
-      'caveman_statue_dark_shadow2',
-      'Dinosaur_skeleton__head_dark_shadow',
-      'mushroom4_light_shadow2','white_crystal_light_shadow5',
-    ].forEach(f => _dp(`assets/world/top_map_extension/Object/PNG/Objects_separately/64/${f}.png`));
-
-    // 32px
-    [
-      'Blue-green_crystal_dark_shadow3',
-      'crystal_blue-green_vertical2','crystal_blue-green_vertical4',
-      'Human_skeleton_dark_shadow',
-      'mushroom4_light_shadow3','white_crystal_dark_shadow3',
-    ].forEach(f => _dp(`assets/world/top_map_extension/Object/PNG/Objects_separately/32/${f}.png`));
-
     // map-scale top objects
     [
       'black_stalagmites_dark_shadow1',
@@ -190,26 +162,9 @@ class BootScene extends Phaser.Scene {
       'Water_rocks2_frame5','Water_rocks3_frame5',
       'web1',
       'Yellow_stone_light_shadow2','Yellow_stone_light_shadow4',
-    ].forEach(f => _dp(`assets/world/top_map_extension/map/PNG/Objects_separately/${f}.png`));
+    ].forEach(f => _dp(`assets/world/craftpix-net-688848-cave-tileset-top-down-pixel-art/PNG/Objects_separately/${f}.png`));
 
     // ── LEFT-MAP EXTENSION dynamic prop objects ───────────────────────────
-    [
-      'Arthropods_grass_shadow1','Arthropods_sand_shadow2',
-      'Bones_grass_shadow2','Bones_grass_shadow3',
-      'Bones_sand_shadow1','Bones_sand_shadow2',
-      'Cactus2_grass_shadow1','Cactus2_grass_shadow2','Cactus2_sand_shadow2',
-      'Flower_grass_shadow2','Flower_grass_shadow3',
-      'House_stump_grass_shadow',
-      'Plant_grass_shadow1','Plant_grass_shadow2','Plant_sand_shadow1',
-      'Roots_grass_shadow1',
-      'Scarabaeus_house_sand_shadow',
-      'Statues_grass_shadow1','Statues_sand_shadow2',
-      'The_beast_grass_shadow1','The_beast_grass_shadow6',
-      'Trees2_sand_shadow2','Trees2_sand_shadow3',
-      'Trees41','Trees43',
-      'trilobite_house_grass_shadow',
-    ].forEach(f => _dp(`assets/world/left_map_extention/objects/PNG/Objects_separately/${f}.png`));
-
     // ── Desert extension props (from craftpix desert pack PNG/Objects_separately) ─
     [
       'Bone_element_grass_shadow1','Bone_element_grass_shadow4',
@@ -228,28 +183,6 @@ class BootScene extends Phaser.Scene {
     ].forEach(f => _dp(`assets/world/craftpix-net-874337-desert-tileset-top-down-pixel-art/PNG/Objects_separately/${f}.png`));
 
     // ── RIGHT-MAP EXTENSION dynamic prop objects (Skeleton Dungeon) ───────
-    // objects/PNG/Objects_separately
-    [
-      'bone_arm_sword_shadow1',
-      'bone_monster_head_shadow2','bone_monster_head_shadow3',
-      'bone_monster_paw_shadow3',
-      'bone_pelvis_shadow3',
-      'coffin1_shadow1',
-      'excavated_grave4_shadow3',
-      'grave1_shadow2','grave2_shadow2','grave3_shadow3',
-      'grave4_shadow3','grave5_shadow3','grave6_shadow3',
-      'lich_shadow1',
-      'monster_tree1_shadow3',
-      'mushroom1_2_shadow2','mushroom2_2_shadow3',
-      'scolopendra_shadow3','scolopendra_tail_shadow3',
-      'skull_chasm_shadow2','skull_chasm_shadow3',
-      'skull_pile_shadow1','skull_pile_shadow3',
-      'undead_plant1_shadow1',
-      'web_rock1_shadow1','web_rock1_shadow3',
-      'web_tree1_shadow1','web_tree1_shadow3',
-    ].forEach(f => _dp(`assets/world/right_map_extention/Skeleton Dungeon/objects/PNG/Objects_separately/${f}.png`));
-
-    // map/PNG/Objects_separately
     [
       'Bones_shadow1_1','Bones_shadow1_4','Bones_shadow1_9',
       'Bones_shadow1_10','Bones_shadow1_12',
@@ -275,7 +208,7 @@ class BootScene extends Phaser.Scene {
       'Broken_tree_shadow2_3','Broken_tree_shadow2_3-1',
       'Broken_tree_shadow2_4','Broken_tree_shadow2_5',
       'Broken_tree_shadow2_6','Broken_tree_shadow2_7',
-    ].forEach(f => _dp(`assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/${f}.png`));
+    ].forEach(f => _dp(`assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/${f}.png`));
 
     // ── Desert extension cuttable trees ───────────────────────────────────
     [

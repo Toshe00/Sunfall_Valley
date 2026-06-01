@@ -34,9 +34,9 @@ class TreeSystem {
       ext_tree:      { axeKey:'gold_axe', label:'Ancient',      hitR:26, yieldWood:4, respawnMs:150_000, stumpOffsetY: 0,               dropKey:'ancient_wood',     iconKey:'dp_assets/world/dynamic_props/Tree2.png' },
       desert_tree:   { axeKey:'gold_axe', label:'Desert',       hitR:20, yieldWood:3, respawnMs:120_000, stumpOffsetY: 0,               dropKey:'desert_wood',      iconKey:'dp_assets/world/craftpix-net-874337-desert-tileset-top-down-pixel-art/PNG/Objects_separately/Tree4_sand_shadow2.png' },
       cactus:        { axeKey:'gold_axe', label:'Cactus',       hitR:18, yieldWood:2, respawnMs: 90_000, stumpOffsetY: 0, noStump:true,  dropKey:'cactus_wood',      iconKey:'dp_assets/world/craftpix-net-874337-desert-tileset-top-down-pixel-art/PNG/Objects_separately/Cactus3_ground_shadow1.png' },
-      undead_tree:   { axeKey:'gold_axe', label:'Undead',       hitR:22, yieldWood:5, respawnMs:180_000, stumpOffsetY: 0,               dropKey:'undead_wood',      iconKey:'dp_assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/Tree_shadow2_2.png' },
+      undead_tree:   { axeKey:'gold_axe', label:'Undead',       hitR:22, yieldWood:5, respawnMs:180_000, stumpOffsetY: 0,               dropKey:'undead_wood',      iconKey:'dp_assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Tree_shadow2_2.png' },
       // ── Top extension (volcano / lava area) ──────────────────────────────
-      slime_mushroom:{ axeKey:'gold_axe', label:'Slime Shroom', hitR:18, yieldWood:3, respawnMs:120_000, stumpOffsetY: 0, noStump:true,  dropKey:'slime_mushroom',   iconKey:'dp_assets/world/top_map_extension/map/PNG/Objects_separately/Slime_musroom_dark_shadow1.png' },
+      slime_mushroom:{ axeKey:'gold_axe', label:'Slime Shroom', hitR:18, yieldWood:3, respawnMs:120_000, stumpOffsetY: 0, noStump:true,  dropKey:'slime_mushroom',   iconKey:'dp_assets/world/craftpix-net-688848-cave-tileset-top-down-pixel-art/PNG/Objects_separately/Slime_musroom_dark_shadow1.png' },
     };
     this.TREE_TYPE_KEYS = Object.keys(this.TREE_TYPES);
 
@@ -143,9 +143,9 @@ class TreeSystem {
       'dp_assets/items/trees/pine_tree.png',
       'dp_assets/items/trees/walnut_tree.png',
       // Right extension — undead tree (GID 41662)
-      'dp_assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/Tree_shadow2_1.png',
-      'dp_assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/Tree_shadow2_2.png',
-      'dp_assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/Tree_shadow2_3.png',
+      'dp_assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Tree_shadow2_1.png',
+      'dp_assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Tree_shadow2_2.png',
+      'dp_assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Tree_shadow2_3.png',
       // Left extension — desert tree (GID 41278)
       'dp_assets/world/craftpix-net-874337-desert-tileset-top-down-pixel-art/PNG/Objects_separately/Tree4_sand_shadow1.png',
       'dp_assets/world/craftpix-net-874337-desert-tileset-top-down-pixel-art/PNG/Objects_separately/Tree4_sand_shadow2.png',
@@ -155,8 +155,8 @@ class TreeSystem {
       'dp_assets/world/craftpix-net-874337-desert-tileset-top-down-pixel-art/PNG/Objects_separately/Cactus3_ground_shadow2.png',
       'dp_assets/world/craftpix-net-874337-desert-tileset-top-down-pixel-art/PNG/Objects_separately/Cactus3_ground_shadow3.png',
       // Top extension — slime mushroom (GID 40901)
-      'dp_assets/world/top_map_extension/map/PNG/Objects_separately/Slime_musroom_dark_shadow1.png',
-      'dp_assets/world/top_map_extension/map/PNG/Objects_separately/Slime_musroom_dark_shadow2.png',
+      'dp_assets/world/craftpix-net-688848-cave-tileset-top-down-pixel-art/PNG/Objects_separately/Slime_musroom_dark_shadow1.png',
+      'dp_assets/world/craftpix-net-688848-cave-tileset-top-down-pixel-art/PNG/Objects_separately/Slime_musroom_dark_shadow2.png',
     ]);
 
     let linkedImg = null;
@@ -281,7 +281,7 @@ class TreeSystem {
 
     // undead_tree uses its own broken-tree stump image
     const stumpKey = (t.type === 'undead_tree')
-      ? 'dp_assets/world/right_map_extention/Skeleton Dungeon/map/PNG/Objects_separately/Broken_tree_shadow2_4.png'
+      ? 'dp_assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Broken_tree_shadow2_4.png'
       : this._stumpTexKey;
 
     if (stumpKey && this.scene.textures.exists(stumpKey)) {
