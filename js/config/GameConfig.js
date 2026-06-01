@@ -176,12 +176,43 @@ const CFG = {
   },
 
   ENEMIES: {
-    ENABLED: false,
+    ENABLED: true,
     SPAWNS: [
-      { type: 'goblin', tileX: 35, tileY: 90 },
-      { type: 'slime',  tileX: 42, tileY: 95 },
-      { type: 'golem',  tileX: 50, tileY: 90 },
+      { type: 'slime', tileX: 79, tileY: 112 },
     ],
+    TYPES: {
+      slime: {
+        hp: 25,
+        damage: 5,
+        speed: 34,
+        wanderSpeed: 16,
+        visionRange: 145,
+        attackRange: 24,
+        attackCooldownMs: 1300,
+        attackHitDelayMs: 260,
+        wanderRadius: 42,
+        bodyW: 18,
+        bodyH: 14,
+        bodyOffsetX: 23,
+        bodyOffsetY: 38,
+        scale: 1.0,
+      },
+    },
+    ASSETS: {
+      slime: {
+        frameW: 64,
+        frameH: 64,
+        basePath: 'assets/characters/slime/slime1/',
+        sheets: {
+          idle  : { file: 'Slime1_Idle_with_shadow.png',   frames: 6  },
+          walk  : { file: 'Slime1_Walk_with_shadow.png',   frames: 8  },
+          run   : { file: 'Slime1_Run_with_shadow.png',    frames: 8  },
+          attack: { file: 'Slime1_Attack_with_shadow.png', frames: 10 },
+          hurt  : { file: 'Slime1_Hurt_with_shadow.png',   frames: 5  },
+          death : { file: 'Slime1_Death_with_shadow.png',  frames: 10 },
+        },
+      },
+    },
   },
 
   // ── Inventory ────────────────────────────────────────────────────────────

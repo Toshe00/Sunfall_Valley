@@ -29,6 +29,16 @@ class BootScene extends Phaser.Scene {
         { frameWidth: p.FRAME_W, frameHeight: p.FRAME_H });
     }
 
+    // Enemy spritesheets
+    for (const [enemyKey, assetDef] of Object.entries(CFG.ENEMIES?.ASSETS ?? {})) {
+      for (const [animKey, sheet] of Object.entries(assetDef.sheets ?? {})) {
+        this.load.spritesheet(`enemy_${enemyKey}_${animKey}`, assetDef.basePath + sheet.file, {
+          frameWidth: assetDef.frameW,
+          frameHeight: assetDef.frameH,
+        });
+      }
+    }
+
     // forest_and_bricks also used by TreeSystem stump-baking
     this.load.image('forest_and_bricks',
       CFG.TILESETS.find(t => t.key === 'forest_and_bricks')?.path ?? '');

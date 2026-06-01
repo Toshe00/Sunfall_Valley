@@ -118,6 +118,7 @@ class GameScene extends Phaser.Scene {
       CFG.ENEMIES?.SPAWNS ?? [],
       { enabled: CFG.ENEMIES?.ENABLED === true }
     );
+    this._enemySystem.linkWorldColliders?.(this._collisionGroup);
 
     this._mining.linkStaticProps(this.children.list);
     this._farming.enableMousePlanting();
@@ -160,6 +161,7 @@ class GameScene extends Phaser.Scene {
     this._trees.update();
     this._farming.update();
     this._fruitTrees.update();
+    this._enemySystem?.update(time, delta);
 
     if (Phaser.Input.Keyboard.JustDown(this._interactKey)) {
       const activeKey = this.scene.get('UIScene')?._hotbar?.activeItem?.key ?? null;
@@ -721,7 +723,9 @@ class GameScene extends Phaser.Scene {
       }
     };
     walk(layers);
+    this._collisionGroup = group;
     this.physics.add.collider(this._player.sprite, group);
+    return group;
   }
 
   _getObjLayer(layers, targetName) {
