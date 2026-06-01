@@ -3,6 +3,8 @@ class BootScene extends Phaser.Scene {
   constructor() { super('BootScene'); }
 
   preload() {
+    this._queuedImageKeys = new Set();
+
     this._buildLoadingBar();
     this.load.on('progress', v => {
       this._barFill.clear();
@@ -110,10 +112,7 @@ class BootScene extends Phaser.Scene {
     this.load.image('inv_icon_apple',       'assets/items/inventory/Apple_HL.png');
 
     // ── Helper: register a dynamic-prop image under key "dp_<resolvedPath>" ─
-    const _dp = (path) => {
-      const key = 'dp_' + path;
-      if (!this.textures.exists(key)) this.load.image(key, path);
-    };
+    const _dp = (path) => this._queueImageOnce('dp_' + path, path);
 
     // ── Original dynamic props (assets/world/dynamic_props/) ─────────────
     [
@@ -231,10 +230,79 @@ class BootScene extends Phaser.Scene {
   }
 
   create() {
+    const queuedDecorImages = this._queueDynamicPropImages(this.cache.json.get('mapjson'));
+    if (queuedDecorImages > 0) {
+      this._pct?.setText('decor');
+      this.load.once('complete', () => this._launchGameScenes());
+      this.load.start();
+      return;
+    }
+    this._launchGameScenes();
+  }
+
+  _launchGameScenes() {
     this.scene.launch('GameScene');
     this.scene.launch('UIScene');
     this.scene.bringToTop('UIScene');
     this.scene.stop('BootScene');
+  }
+
+  _queueImageOnce(key, path) {
+    if (!key || !path) return false;
+    if (this.textures.exists(key) || this._queuedImageKeys?.has(key)) return false;
+    this._queuedImageKeys.add(key);
+    this.load.image(key, path);
+    return true;
+  }
+
+  _queueDynamicPropImages(mapData) {
+    if (!mapData?.tilesets) return 0;
+    const propLayerNames = new Set([
+      'dynamic_props_object',
+      'dynamic_props_top_extenstion',
+      'dynamic_props_right_extention',
+      'dynamic_props_left_extention',
+      'cuttable_trees_object',
+    ]);
+    const defs = new Map();
+    const usedPaths = new Set();
+    let queued = 0;
+
+    for (const tileset of mapData.tilesets) {
+      if (tileset.image || !Array.isArray(tileset.tiles)) continue;
+
+      for (const tile of tileset.tiles) {
+        if (!tile.image) continue;
+        defs.set(tileset.firstgid + tile.id, this._resolveTiledImagePath(tile.image));
+      }
+    }
+
+    const walk = (layers) => {
+      for (const layer of layers ?? []) {
+        const layerName = (layer.name || '').toLowerCase().trim();
+        if (layer.type === 'objectgroup' && propLayerNames.has(layerName)) {
+          for (const obj of layer.objects ?? []) {
+            if (!obj.gid) continue;
+            const raw = obj.gid & ~(0x80000000|0x40000000|0x20000000);
+            const path = defs.get(raw);
+            if (path) usedPaths.add(path);
+          }
+        }
+        if (layer.layers) walk(layer.layers);
+      }
+    };
+    walk(mapData.layers);
+
+    for (const path of usedPaths) {
+      if (this._queueImageOnce('dp_' + path, path)) queued++;
+    }
+    return queued;
+  }
+
+  _resolveTiledImagePath(imagePath) {
+    return imagePath.startsWith('../')
+      ? 'assets/' + imagePath.slice(3)
+      : 'assets/world/' + imagePath;
   }
 
   _buildLoadingBar() {

@@ -518,6 +518,13 @@ class GameScene extends Phaser.Scene {
 
   _buildDynamicProps(layers) {
     const F_ALL = 0x80000000|0x40000000|0x20000000;
+    const stats = {
+      candidates: 0,
+      rendered: 0,
+      missingDefs: [],
+      missingTextures: [],
+      layers: [],
+    };
 
     const propLayerNames = [
       'dynamic_props_object',
@@ -535,6 +542,7 @@ class GameScene extends Phaser.Scene {
         if (l.type === 'objectgroup') {
           const lname = (l.name || '').toLowerCase().trim();
           if (propLayerNames.includes(lname)) {
+            stats.layers.push(l.name || '');
             for (const o of (l.objects || [])) {
               objs.push({ ...o, x: o.x + ox, y: o.y + oy });
             }
@@ -547,12 +555,19 @@ class GameScene extends Phaser.Scene {
 
     for (const o of objs) {
       if (!o.gid) continue;
+      stats.candidates++;
 
       const raw = o.gid & ~F_ALL;
       const def = this._dynPropDefs.get(raw);
-      if (!def) continue;
+      if (!def) {
+        stats.missingDefs.push(raw);
+        continue;
+      }
 
-      if (!this.textures.exists(def.texKey)) continue;
+      if (!this.textures.exists(def.texKey)) {
+        stats.missingTextures.push(def.texKey);
+        continue;
+      }
 
       const flipH = !!(o.gid & 0x80000000);
       const flipV = !!(o.gid & 0x40000000);
@@ -572,6 +587,14 @@ class GameScene extends Phaser.Scene {
         .setDepth(depth)
         .setFlipX(flipH)
         .setFlipY(flipV);
+      stats.rendered++;
+    }
+
+    stats.missingDefs = Array.from(new Set(stats.missingDefs));
+    stats.missingTextures = Array.from(new Set(stats.missingTextures));
+    this._dynamicPropStats = stats;
+    if (stats.missingDefs.length || stats.missingTextures.length) {
+      console.warn('[MAP DECORATION MISSING]', stats);
     }
   }
 
