@@ -1,0 +1,7 @@
+node_modules/
+.claude/
+.env
+*.zip
+*.rar
+__MACOSX/
+._*
