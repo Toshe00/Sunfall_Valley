@@ -187,18 +187,24 @@ class InventorySystem {
       const capturedKey   = item.key;
       const capturedLabel = item.label;
       const capturedIcon  = item.iconKey;
+      let wasDragging = false;
 
       icon.setInteractive({ useHandCursor: true, draggable: true });
       this.scene.input.setDraggable(icon);
 
       icon.on('dragstart', (ptr) => {
+        wasDragging = true;
         const hotbar = this.scene._hotbar;
         if (hotbar) {
           hotbar.beginInventoryDrag(capturedKey, capturedLabel, capturedIcon, ptr.x, ptr.y);
         }
       });
 
-      icon.on('pointerdown', () => {
+      icon.on('pointerup', () => {
+        if (wasDragging) {
+          wasDragging = false;
+          return;
+        }
         this._onSelectSeed?.(capturedKey);
         this.close();
       });

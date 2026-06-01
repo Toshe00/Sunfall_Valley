@@ -161,6 +161,7 @@ class GameScene extends Phaser.Scene {
   _handlePointerAttack(pointer) {
     if (pointer.button !== 0 || this._player?.isDead) return;
     if (this.scene.get('UIScene')?._inventory?.isOpen?.()) return;
+    if (!this._isSwordSelected()) return;
 
     this._player.playAttack({
       onHit: () => {
@@ -168,6 +169,11 @@ class GameScene extends Phaser.Scene {
         this.registry.set('lastAttackHits', this._lastAttackHits);
       },
     });
+  }
+
+  _isSwordSelected() {
+    const hotbar = this.scene.get('UIScene')?._hotbar;
+    return hotbar?.activeItem?.key === 'sword';
   }
 
   damagePlayer(amount = 10) {

@@ -11,9 +11,9 @@
 class HealthBarHUD {
 
   // Tune these to taste
-  static SCALE    = 1.8;   // display scale of the sprite
-  static PAD_X    = 8;     // left margin
-  static PAD_Y    = 44;    // top margin (sits just below the title bar)
+  static SCALE    = 2.7;   // display scale of the sprite
+  static PAD_X    = 12;    // left margin
+  static PAD_Y    = 12;    // top margin
   static DEPTH    = 9110;  // above day/night overlay (9001)
 
   constructor(scene) {

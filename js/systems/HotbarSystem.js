@@ -7,10 +7,10 @@ class HotbarSystem {
   static SEPS  = [24,265,469,672,876,1079,1267,1470,1673,1864,2102];
   static N     = 10;
 
-  static get SC() { return 48 / 207; }
+  static get SC() { return 72 / 207; }
   static get DW() { return Math.round(2094 * HotbarSystem.SC); }
   static get DH() { return Math.round(423  * HotbarSystem.SC); }
-  static get SZ() { return 48; }
+  static get SZ() { return 72; }
 
   constructor(scene, inventorySystem) {
     this.scene     = scene;
@@ -57,7 +57,7 @@ class HotbarSystem {
     const SZ = HotbarSystem.SZ;
 
     this._ox = Math.round((W - DW) / 2);
-    this._oy = H - DH - 6;
+    this._oy = H - DH;
 
     const imgSX = DW / S.w;
     const imgSY = DH / S.h;
@@ -87,7 +87,7 @@ class HotbarSystem {
 
       const hl = this.scene.add.graphics()
         .setScrollFactor(0).setDepth(82);
-      hl.lineStyle(3, 0xFFD700, 1.0);
+      hl.lineStyle(5, 0xFFD700, 1.0);
       hl.strokeRect(cx - SZ/2 + 1, cy - SZ/2 + 1, SZ - 2, SZ - 2);
       hl.setVisible(false);
 
@@ -97,8 +97,8 @@ class HotbarSystem {
 
       const qty = this.scene.add.text(
         cx + SZ/2 - 1, cy + SZ/2 - 1, '',
-        { fontFamily:'Arial', fontSize:'20px', fontStyle:'bold', resolution:2,
-          color:'#ffffff', stroke:'#000000', strokeThickness:4 }
+        { fontFamily:'Arial', fontSize:'30px', fontStyle:'bold', resolution:2,
+          color:'#ffffff', stroke:'#000000', strokeThickness:6 }
       ).setOrigin(1, 1).setScrollFactor(0).setDepth(84).setScale(0.5);
 
       const zone = this.scene.add.rectangle(cx, cy, SZ, SZ)
@@ -206,6 +206,7 @@ class HotbarSystem {
     // ── FIX: match new key patterns (oak_axe / pine_axe / walnut_axe)
     const isAxe  = item.key.endsWith('_axe');
     const isPick = item.key.endsWith('_pickaxe');
+    const isSword = item.key === 'sword';
 
     if (isSeed) {
       farming?.selectSeed?.(item.key);
@@ -215,9 +216,10 @@ class HotbarSystem {
       farming?.clearSelectedSeed?.();
       gs?.registry?.set?.('activeSeed', null);
       gs?.registry?.set?.('activeTool', item.key);
-      if (isAxe || isPick) {
+      if (isAxe || isPick || isSword) {
         const label = item.label ?? item.key;
-        uiScene._showNotif?.(`🪓 ${label} equipped`, '#ffdd44');
+        const prefix = isSword ? '' : '🪓 ';
+        uiScene._showNotif?.(`${prefix}${label} equipped`, '#ffdd44');
       }
     }
   }
@@ -241,7 +243,7 @@ class HotbarSystem {
     const tex = this._resolveIcon(info.key, info.iconKey);
     if (tex && this.scene.textures.exists(tex)) {
       this._dragImg = this.scene.add.image(px, py, tex)
-        .setScrollFactor(0).setDepth(200).setAlpha(0.88).setScale(2.0);
+        .setScrollFactor(0).setDepth(200).setAlpha(0.88).setScale(3.0);
     }
   }
 
@@ -338,7 +340,7 @@ class HotbarSystem {
       const ui = this._ui[i];
       if (!ui.glowRect) {
         ui.glowRect = this.scene.add.rectangle(
-          ui.cx, ui.cy, HotbarSystem.SZ + 12, HotbarSystem.SZ + 12
+          ui.cx, ui.cy, HotbarSystem.SZ + 18, HotbarSystem.SZ + 18
         )
           .setScrollFactor(0)
           .setDepth(81)

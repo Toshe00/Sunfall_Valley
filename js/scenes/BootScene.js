@@ -53,6 +53,9 @@ class BootScene extends Phaser.Scene {
     this.load.image('iron_pickaxe',   'assets/items/weapons/iron_pick_axe.png');
     this.load.image('gold_pickaxe',   'assets/items/weapons/iron_pick_axe.png');
 
+    // Sword
+    this.load.image('sword', 'assets/items/weapon_icon_2/Icons/Icon_4_06.png');
+
     // ── Crop sheets + harvest icons ───────────────────────────────────────
     const cropKeys = Object.keys(FarmingSystem.CROP_TYPES);
     for (const key of cropKeys) {
