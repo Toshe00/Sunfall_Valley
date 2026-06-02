@@ -455,7 +455,7 @@ const CFG = {
         bodyH: 24,
         bodyOffsetX: 49,
         bodyOffsetY: 78,
-        scale: 0.8,
+        scale: 1.2,
       },
     },
     ASSETS: {

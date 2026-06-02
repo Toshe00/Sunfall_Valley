@@ -32,13 +32,20 @@ class EnemySpawnSystem {
     const dt = Math.min(delta ?? 16, 50) / 1000;
     const player = this.scene._player?.sprite;
     if (!player?.active || this.scene._player?.isDead) {
-      for (const enemy of this.enemies) enemy.body?.setVelocity(0, 0);
+      for (const enemy of this.enemies) {
+        enemy.body?.setVelocity(0, 0);
+        this._updateHealthBar(enemy);
+      }
       return;
     }
 
     for (const enemy of [...this.enemies]) {
-      if (!enemy?.active || enemy.getData('dead')) continue;
+      if (!enemy?.active || enemy.getData('dead')) {
+        this._destroyHealthBar(enemy);
+        continue;
+      }
       this._updateEnemy(enemy, player, time, dt);
+      this._updateHealthBar(enemy);
     }
   }
 
@@ -80,7 +87,8 @@ class EnemySpawnSystem {
       .setData('facing', 'down')
       .setData('nextAttackAt', 0)
       .setData('nextWanderAt', 0)
-      .setData('wanderTarget', null);
+      .setData('wanderTarget', null)
+      .setData('healthBar', null);
 
     enemy.isEnemy = true;
     enemy.takeDamage = (amount) => this._takeDamage(enemy, amount);
@@ -235,11 +243,86 @@ class EnemySpawnSystem {
     enemy.setData('hp', nextHp);
 
     if (nextHp <= 0) {
+      this._destroyHealthBar(enemy);
       this._kill(enemy);
     } else {
+      this._showHealthBar(enemy);
       this._hurt(enemy);
     }
     return true;
+  }
+
+  _showHealthBar(enemy) {
+    const bar = this._ensureHealthBar(enemy);
+    if (!bar) return;
+
+    bar.bg.setVisible(true);
+    bar.fill.setVisible(true);
+    this._updateHealthBar(enemy);
+
+    bar.hideEvent?.remove(false);
+    bar.hideEvent = this.scene.time.delayedCall(3500, () => {
+      if (!enemy.active || enemy.getData('dead')) {
+        this._destroyHealthBar(enemy);
+        return;
+      }
+
+      const current = enemy.getData('healthBar');
+      current?.bg?.setVisible(false);
+      current?.fill?.setVisible(false);
+    });
+  }
+
+  _ensureHealthBar(enemy) {
+    if (!enemy?.active) return null;
+    const existing = enemy.getData('healthBar');
+    if (existing?.bg && existing?.fill) return existing;
+
+    const bar = {
+      bg: this.scene.add.graphics().setDepth(9200),
+      fill: this.scene.add.graphics().setDepth(9201),
+      hideEvent: null,
+    };
+    enemy.setData('healthBar', bar);
+    return bar;
+  }
+
+  _updateHealthBar(enemy) {
+    const bar = enemy?.getData?.('healthBar');
+    if (!bar?.bg || !bar?.fill) return;
+
+    if (!enemy.active || enemy.getData('dead')) {
+      this._destroyHealthBar(enemy);
+      return;
+    }
+
+    const maxHp = Math.max(1, enemy.getData('maxHp') ?? 1);
+    const hp = Phaser.Math.Clamp(enemy.getData('hp') ?? maxHp, 0, maxHp);
+    const pct = hp / maxHp;
+    const bounds = enemy.getBounds();
+    const width = Phaser.Math.Clamp(bounds.width * 0.75, 34, 68);
+    const height = 5;
+    const x = enemy.x - width / 2;
+    const y = bounds.top - 8;
+    const fillColor = pct > 0.5 ? 0x45d35f : (pct > 0.25 ? 0xffd34d : 0xe84b4b);
+
+    bar.bg.clear();
+    bar.bg.fillStyle(0x161b22, 0.9);
+    bar.bg.fillRect(x - 1, y - 1, width + 2, height + 2);
+
+    bar.fill.clear();
+    bar.fill.fillStyle(fillColor, 1);
+    bar.fill.fillRect(x, y, width * pct, height);
+  }
+
+  _destroyHealthBar(enemy) {
+    const bar = enemy?.getData?.('healthBar');
+    if (!bar) return;
+
+    bar.hideEvent?.remove(false);
+    bar.bg?.destroy();
+    bar.fill?.destroy();
+    enemy.setData?.('healthBar', null);
   }
 
   _hurt(enemy) {
@@ -256,6 +339,7 @@ class EnemySpawnSystem {
 
   _kill(enemy) {
     if (enemy.getData('dead')) return;
+    this._destroyHealthBar(enemy);
     enemy.setData('dead', true);
     enemy.setData('state', 'death');
     enemy.body.setVelocity(0, 0);
@@ -271,6 +355,7 @@ class EnemySpawnSystem {
 
   _remove(enemy) {
     if (!enemy || !enemy.active) return;
+    this._destroyHealthBar(enemy);
     const record = enemy.getData?.('spawnRecord');
     if (record?.enemy === enemy) record.enemy = null;
     this.enemies = this.enemies.filter((item) => item !== enemy);

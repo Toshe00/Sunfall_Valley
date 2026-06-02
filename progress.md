@@ -1,6 +1,9 @@
 Original prompt: Ajouter l'icone de l'epee dans l'inventaire, permettre son drag vers la hotbar, et autoriser l'attaque au clic gauche uniquement quand le slot hotbar contenant l'epee est selectionne.
 
 Progress:
+- Current prompt: Corriger une bande horizontale verte/grise visible sur la map sans modifier gameplay, collisions, joueur, ennemis, spawns, stats, hotbar, inventaire TAB ou controles ZQSD.
+- Found the artifact in assets/world/2dmap.json around tile x=99..112, y=51..61. The bad visuals were water/detailization tiles from Top_extention/cave_Objects_under_walls and top_right/11 drawn over grass near the small pond/top-right nature patch. Removed only those visual tile cells; kept the pond water, collision object layer, player spawn, enemy spawns/stats and Phaser depth logic unchanged.
+- Verified locally with spawn-preview at x=1664, y=912: the horizontal water/detail bands are gone, the pond remains, and trees/bushes/flowers still render. develop-web-game Playwright client passed with sword-basic-actions. sword-ui-test passed, including ZQSD/TAB/hotbar/sword flow and 20 enemy spawns still present. map-decoration-test is stale because it still asserts enemyCount === 1 while the current config has 20 enemies.
 - Current prompt: Centraliser les statistiques de tous les ennemis dans ENEMY_STATS sans modifier spawns/animations/respawn/comportements.
 - Added ENEMY_STATS in GameConfig.js with the requested temporary balancing values. CFG.ENEMIES.STATS points to the centralized table, while CFG.ENEMIES.TYPES now keeps technical settings and derives gameplay stats from ENEMY_STATS. EnemySpawnSystem._typeDef now merges centralized stats and safely falls back to slime stats for unknown enemy types, while preserving visionRange/attackCooldownMs aliases for the existing movement/attack code.
 - Verified with Playwright scripts: enemy-stats-test confirms exact centralized values, difficulty ordering, golem highest HP/slow role, demon damage scaling, alias mapping, fallback safety, 5 minute respawn unchanged, spawned HP/maxHP from stats; all enemy family behavior/respawn tests and ZQSD/TAB/hotbar/sword-gated click attack still pass.
@@ -40,3 +43,10 @@ Progress:
 
 TODO:
 - No open TODOs.
+
+- Current prompt: Ajouter une jauge de vie au-dessus des ennemis quand le joueur les tape, sans modifier gameplay/spawns/stats/controle.
+- Added per-enemy health bars in EnemySpawnSystem. Bars are created on damage from each enemy's hp/maxHp, follow the enemy, use high world depth, auto-hide after a short delay, and are destroyed on death/removal so respawned enemies start clean.
+- Verified with Playwright: enemy-health-bar-test confirms the fill width shrinks after repeated damage, death cleans the bar, respawn restores full HP with no stale bar, and damaging the respawned enemy recreates a fresh bar. sword-ui-test and the develop-web-game smoke client still pass for ZQSD/TAB/hotbar/sword-gated left-click attack and 20 enemy spawns.
+- Current prompt: Agrandir la taille visuelle du golem de 50% uniquement.
+- Changed only CFG.ENEMIES.TYPES.golem.scale from 0.8 to 1.2, preserving centralized stats, spawn, damage, HP, speed and respawn. Verified golem idle/walk/run/attack/hurt/death keep scale 1.2, the enemy health bar stays above the enlarged sprite, and golem hitbox remains active.
+- Verified with Playwright: golem-spawn-test passes for scale, spawn, stats, attack, death, 5 minute respawn and no duplicates; enemy-health-bar-test, sword-ui-test and develop-web-game smoke client still pass.
