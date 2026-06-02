@@ -1,8 +1,9 @@
 class HealthBarHUD {
-  static SCALE = 2.7;
+  static SCALE = 3.25;
   static PAD_X = 12;
   static PAD_Y = 12;
   static DEPTH = 9110;
+  static PANEL = { x: 0, y: 0, w: 96, h: 32 };
 
   constructor(scene) {
     this.scene = scene;
@@ -21,9 +22,9 @@ class HealthBarHUD {
     this._barFull = this._panel;
 
     this._bars = scene.add.graphics().setScrollFactor(0).setDepth(DEPTH + 1);
-    this._hpText = this._makeText(PAD_X + 92, PAD_Y + 15, 'HP 100 / 100', 10);
-    this._levelText = this._makeText(PAD_X + 16, PAD_Y + 82, 'Level 1', 14);
-    this._xpText = this._makeText(PAD_X + 92, PAD_Y + 52, 'XP 0 / 150', 10);
+    this._hpText = this._makeText(this._screenX(34), this._screenY(6.8), 'HP 100 / 100', 12);
+    this._levelText = this._makeText(this._screenX(5), this._screenY(36), 'Level 1', 17);
+    this._xpText = this._makeText(this._screenX(34), this._screenY(18.8), 'XP 0 / 150', 12);
 
     this._draw();
   }
@@ -64,17 +65,27 @@ class HealthBarHUD {
   _ensurePanelFrame() {
     const tex = this.scene.textures.get('ui_character_panel');
     if (tex && !tex.frames.empty_panel) {
-      tex.add('empty_panel', 0, 0, 0, 96, 40);
+      const p = HealthBarHUD.PANEL;
+      tex.add('empty_panel', 0, p.x, p.y, p.w, p.h);
     }
   }
 
-  _barRect(sourceY) {
+  _screenX(sourceX) {
     const scale = HealthBarHUD.SCALE;
+    return HealthBarHUD.PAD_X + sourceX * scale;
+  }
+
+  _screenY(sourceY) {
+    const scale = HealthBarHUD.SCALE;
+    return HealthBarHUD.PAD_Y + sourceY * scale;
+  }
+
+  _barRect(sourceY) {
     return {
-      x: HealthBarHUD.PAD_X + 32 * scale,
-      y: HealthBarHUD.PAD_Y + sourceY * scale,
-      w: 50 * scale,
-      h: 3 * scale,
+      x: this._screenX(31),
+      y: this._screenY(sourceY),
+      w: 53 * HealthBarHUD.SCALE,
+      h: 3.2 * HealthBarHUD.SCALE,
     };
   }
 
@@ -94,9 +105,9 @@ class HealthBarHUD {
       : Phaser.Math.Clamp(this._xp.xp / this._xp.xpToNext, 0, 1);
 
     this._bars.clear();
-    this._drawBar(this._barRect(7), hpPct, 0xd9362e);
-    this._drawBar(this._barRect(13), staminaPct, 0x2f80ff);
-    this._drawBar(this._barRect(19), xpPct, 0x30c85a);
+    this._drawBar(this._barRect(5.1), hpPct, 0xd9362e);
+    this._drawBar(this._barRect(11.2), staminaPct, 0x2f80ff);
+    this._drawBar(this._barRect(17.3), xpPct, 0x30c85a);
 
     this._hpText?.setText(`HP ${Math.round(this._health.current)} / ${Math.round(this._health.max)}`);
     this._levelText?.setText(`Level ${this._xp.level}`);
