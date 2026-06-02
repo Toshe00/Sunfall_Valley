@@ -300,8 +300,8 @@ class EnemySpawnSystem {
     const hp = Phaser.Math.Clamp(enemy.getData('hp') ?? maxHp, 0, maxHp);
     const pct = hp / maxHp;
     const bounds = enemy.getBounds();
-    const width = Phaser.Math.Clamp(bounds.width * 0.75, 34, 68);
-    const height = 5;
+    const width = Phaser.Math.Clamp(bounds.width * 0.375, 17, 34);
+    const height = 3;
     const x = enemy.x - width / 2;
     const y = bounds.top - 8;
     const fillColor = pct > 0.5 ? 0x45d35f : (pct > 0.25 ? 0xffd34d : 0xe84b4b);
