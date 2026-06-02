@@ -5,7 +5,7 @@ class EnemySpawnSystem {
     this.tileW = mapData.tilewidth ?? CFG.TILE_SIZE;
     this.tileH = mapData.tileheight ?? CFG.TILE_SIZE;
     this.enabled = options.enabled === true;
-    this.respawnMs = options.respawnMs ?? CFG.ENEMIES?.RESPAWN_MS ?? 600000;
+    this.respawnMs = options.respawnMs ?? CFG.ENEMIES?.RESPAWN_MS ?? 300000;
     this.spawns = spawns.map((spawn) => this._toPixelSpawn(spawn));
     this._spawnRecords = this.spawns.map((spawn, index) => ({
       id: index,
@@ -300,7 +300,14 @@ class EnemySpawnSystem {
 
   _typeDef(type) {
     const fallback = CFG.ENEMIES?.TYPES?.slime ?? {};
-    return { ...fallback, ...(CFG.ENEMIES?.TYPES?.[type] ?? {}) };
+    const statsFallback = CFG.ENEMIES?.STATS?.slime ?? {};
+    const stats = CFG.ENEMIES?.STATS?.[type] ?? statsFallback;
+    const typeDef = { ...fallback, ...(CFG.ENEMIES?.TYPES?.[type] ?? {}), ...stats };
+    return {
+      ...typeDef,
+      visionRange: typeDef.visionRange ?? typeDef.detectionRange ?? fallback.visionRange ?? statsFallback.detectionRange,
+      attackCooldownMs: typeDef.attackCooldownMs ?? typeDef.attackCooldown ?? fallback.attackCooldownMs ?? statsFallback.attackCooldown,
+    };
   }
 
   _animKey(enemy, anim, facing) {
