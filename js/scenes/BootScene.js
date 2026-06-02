@@ -30,6 +30,14 @@ class BootScene extends Phaser.Scene {
       this.load.spritesheet('sw_' + animKey, p.BASE_PATH + sheet.file,
         { frameWidth: p.FRAME_W, frameHeight: p.FRAME_H });
     }
+    for (const [assetKey, assetDef] of Object.entries(p.HERO_ASSETS ?? {})) {
+      for (const [animKey, sheet] of Object.entries(assetDef.sheets ?? {})) {
+        this.load.spritesheet(`${assetKey}_${animKey}`, assetDef.basePath + sheet.file, {
+          frameWidth: assetDef.frameW ?? p.FRAME_W,
+          frameHeight: assetDef.frameH ?? p.FRAME_H,
+        });
+      }
+    }
 
     // Enemy spritesheets
     for (const [enemyKey, assetDef] of Object.entries(CFG.ENEMIES?.ASSETS ?? {})) {
@@ -52,6 +60,7 @@ class BootScene extends Phaser.Scene {
     this.load.image('ui_inventory_custom', 'assets/ui/PNG/inventory.png');
     this.load.image('ui_hotbar',           'assets/ui/PNG/Action_panel.png');
     this.load.image('ui_healthbar',        'assets/ui/PNG/HealthBar_full.png');
+    this.load.image('ui_character_panel',  'assets/ui/PNG/character_panel.png');
 
     // ── Axes ──────────────────────────────────────────────────────────────
     this.load.image('oak_axe',    'assets/items/weapons/oak_axe.png');

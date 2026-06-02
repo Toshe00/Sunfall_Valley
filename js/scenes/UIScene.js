@@ -4,6 +4,8 @@ class UIScene extends Phaser.Scene {
 
   create() {
     this._healthBar = new HealthBarHUD(this);
+    this._levelText = this._healthBar._levelText;
+    this._xpText = this._healthBar._xpText;
     this._clock = new ClockHUD(this);
     // ── Inventory ─────────────────────────────────────────────────────────
     this._inventory = new InventorySystem(this);
@@ -31,6 +33,15 @@ class UIScene extends Phaser.Scene {
 
     // ── Hotbar ────────────────────────────────────────────────────────────
     this._hotbar = new HotbarSystem(this, this._inventory);
+    const gameScene = this.scene.get('GameScene');
+    gameScene?.events.on('hero-xp-changed', this._setHeroXP, this);
+    gameScene?.events.on('hero-level-up', this._showLevelUp, this);
+    const player = gameScene?._player;
+    if (player) {
+      this._healthBar.setHealth(player.health, player.maxHealth);
+      this._healthBar.setStamina(player.stamina, player.maxStamina);
+    }
+    this._setHeroXP(gameScene?.registry.get('heroXP') ?? { level: 1, xp: 0, xpToNext: 150, isMax: false });
 
     // When player clicks a seed in inventory, tell FarmingSystem
     this._inventory.onSelect(key => {
@@ -46,6 +57,7 @@ class UIScene extends Phaser.Scene {
     this.input.keyboard.addKey(inventoryKeyCode, true)
       .on('down', (_key, event) => {
         event?.preventDefault();
+        if (this.scene.get('GameScene')?.registry.get('playerInputLocked')) return;
         this._inventory.toggle();
       });
 
@@ -54,6 +66,42 @@ class UIScene extends Phaser.Scene {
 
   update() {
     this._clock?.update();
+  }
+
+  _setHeroXP(state) {
+    this._healthBar?.setXP(state);
+  }
+
+  _showLevelUp(level) {
+    const text = this.add.text(this.scale.width / 2, this.scale.height / 2, `LVL ${level}`, {
+      fontFamily: 'Georgia, "Times New Roman", serif',
+      fontSize: '58px',
+      fontStyle: 'bold',
+      resolution: 2,
+      color: '#ffe28a',
+      stroke: '#351507',
+      strokeThickness: 9,
+      shadow: { offsetX: 0, offsetY: 4, color: '#000000', blur: 8, fill: true },
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(10000).setAlpha(0).setScale(0.6);
+
+    this.tweens.add({
+      targets: text,
+      alpha: 1,
+      scale: 1.08,
+      duration: 320,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.tweens.add({
+          targets: text,
+          alpha: 0,
+          scale: 1.18,
+          delay: 1500,
+          duration: 700,
+          ease: 'Sine.easeIn',
+          onComplete: () => text.destroy(),
+        });
+      },
+    });
   }
 
   // ── Seed HUD ──────────────────────────────────────────────────────────────

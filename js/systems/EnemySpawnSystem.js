@@ -83,6 +83,7 @@ class EnemySpawnSystem {
       .setData('spawnRecord', record)
       .setData('hp', spawn.hp ?? def.hp)
       .setData('maxHp', spawn.hp ?? def.hp)
+      .setData('xpAwarded', false)
       .setData('state', 'idle')
       .setData('facing', 'down')
       .setData('nextAttackAt', 0)
@@ -91,7 +92,7 @@ class EnemySpawnSystem {
       .setData('healthBar', null);
 
     enemy.isEnemy = true;
-    enemy.takeDamage = (amount) => this._takeDamage(enemy, amount);
+    enemy.takeDamage = (amount, meta = null) => this._takeDamage(enemy, amount, meta);
 
     enemy.body.setAllowGravity(false);
     enemy.body.setCollideWorldBounds(true);
@@ -237,12 +238,16 @@ class EnemySpawnSystem {
     if (enemy.anims.currentAnim?.key !== key) enemy.play(key, true);
   }
 
-  _takeDamage(enemy, amount) {
+  _takeDamage(enemy, amount, meta = null) {
     if (!enemy.active || enemy.getData('dead')) return false;
     const nextHp = Math.max(0, (enemy.getData('hp') ?? 0) - amount);
     enemy.setData('hp', nextHp);
 
     if (nextHp <= 0) {
+      if (meta?.source === 'player' && !enemy.getData('xpAwarded')) {
+        enemy.setData('xpAwarded', true);
+        this.scene.events.emit('enemy-killed-by-player', enemy);
+      }
       this._destroyHealthBar(enemy);
       this._kill(enemy);
     } else {

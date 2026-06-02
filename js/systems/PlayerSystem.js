@@ -10,11 +10,14 @@ class PlayerSystem {
     this.scene   = scene;
     this._facing = 'down';
     this._state  = 'idle';
+    this._heroLevel = CFG.PLAYER.START_LEVEL ?? 1;
     this._maxHealth = CFG.PLAYER.MAX_HEALTH ?? 100;
     this._health = this._maxHealth;
+    this._maxStamina = CFG.PLAYER.MAX_STAMINA ?? 100;
+    this._stamina = this._maxStamina;
     this._nextAttackAt = 0;
     this._invulnerableUntil = 0;
-    if (!scene.anims.exists('idle_down')) this._buildAnimations();
+    if (!scene.anims.exists('idle_down')) this._buildAnimations(this._heroLevel);
     this._createSprite(x, y);
     this._createKeys();
   }
@@ -25,15 +28,18 @@ class PlayerSystem {
   get facing() { return this._facing; }
   get health() { return this._health; }
   get maxHealth() { return this._maxHealth; }
+  get stamina() { return this._stamina; }
+  get maxStamina() { return this._maxStamina; }
   get isDead() { return this._state === 'dead'; }
+  get heroLevel() { return this._heroLevel; }
 
-  update() {
+  update(delta = 16) {
     if (this._state === 'dead') {
       this._sprite.body.setVelocity(0, 0);
       return;
     }
     if (this._state === 'attack' || this._state === 'hurt') return;
-    this._handleMovement();
+    this._handleMovement(delta);
     this._sprite.setDepth(this._sprite.y);
   }
 
@@ -92,6 +98,42 @@ class PlayerSystem {
     return true;
   }
 
+  respawnAt(x, y) {
+    this.scene.tweens.killTweensOf(this._sprite);
+    this._health = this._maxHealth;
+    this._stamina = this._maxStamina;
+    this._state = 'idle';
+    this._facing = 'down';
+    this._nextAttackAt = 0;
+    this._invulnerableUntil = this.scene.time.now + (CFG.PLAYER.RESPAWN_INVULN_MS ?? 900);
+
+    this._sprite.body.enable = true;
+    this._sprite.body.reset(x, y);
+    this._sprite.setPosition(x, y);
+    this._sprite.setVelocity(0, 0);
+    this._sprite.setAlpha(1);
+    this._sprite.setVisible(true);
+    this._sprite.setDepth(this._sprite.y);
+    this._sprite.play('idle_down', true);
+    this._emitHealthChanged();
+    this._emitStaminaChanged();
+  }
+
+  setHeroLevel(level) {
+    const nextLevel = Phaser.Math.Clamp(level, 1, 9);
+    if (nextLevel === this._heroLevel) return;
+
+    const currentAnimKey = this._sprite.anims.currentAnim?.key ?? `idle_${this._facing}`;
+    this._heroLevel = nextLevel;
+    this._buildAnimations(this._heroLevel, true);
+    this._sprite.setTexture(this._sheetKey('idle'), 0);
+
+    const replayKey = this.scene.anims.exists(currentAnimKey)
+      ? currentAnimKey
+      : `idle_${this._facing}`;
+    this._sprite.play(replayKey, true);
+  }
+
   _playHurt() {
     const animKey = `hurt_${this._facing}`;
     this._state = 'hurt';
@@ -128,13 +170,15 @@ class PlayerSystem {
     this._sprite.setAlpha(1);
     this._sprite.body.setVelocity(0, 0);
     this._sprite.body.enable = false;
-    this._sprite.play(animKey, true);
+    if (this.scene.anims.exists(animKey)) {
+      this._sprite.play(animKey, true);
+    }
     this.scene.events.emit('player-death');
   }
 
   _createSprite(x, y) {
     const p = CFG.PLAYER;
-    this._sprite = this.scene.physics.add.sprite(x, y, 'sw_idle');
+    this._sprite = this.scene.physics.add.sprite(x, y, this._sheetKey('idle'));
     this._sprite.setScale(p.SCALE);
     this._sprite.body.setSize(p.BODY_W, p.BODY_H);
     this._sprite.body.setOffset(
@@ -144,10 +188,15 @@ class PlayerSystem {
     //this._sprite.setDepth(10);  // Above most map tiles (depth 0)
     this._sprite.play('idle_down');
     this._emitHealthChanged();
+    this._emitStaminaChanged();
   }
 
   _emitHealthChanged() {
     this.scene.events.emit('player-health-changed', this._health, this._maxHealth);
+  }
+
+  _emitStaminaChanged() {
+    this.scene.events.emit('player-stamina-changed', this._stamina, this._maxStamina);
   }
 
   _createKeys() {
@@ -166,22 +215,25 @@ class PlayerSystem {
     });
   }
 
-  _handleMovement() {
+  _handleMovement(delta = 16) {
     const k     = this._keys;
     const p     = CFG.PLAYER;
-    const isRun = k.shift.isDown;
-    const speed = isRun ? p.RUN_SPEED : p.SPEED;
+    const dt = Math.min(delta ?? 16, 50) / 1000;
+    const wantsRun = k.shift.isDown && this._stamina > 0;
 
     let vx = 0, vy = 0;
-    if (k.left.isDown  || k.a.isDown || k.q.isDown)  vx = -speed;
-    if (k.right.isDown || k.d.isDown)  vx =  speed;
-    if (k.up.isDown    || k.w.isDown || k.z.isDown)  vy = -speed;
-    if (k.down.isDown  || k.s.isDown)  vy =  speed;
+    if (k.left.isDown  || k.a.isDown || k.q.isDown)  vx = -1;
+    if (k.right.isDown || k.d.isDown)  vx =  1;
+    if (k.up.isDown    || k.w.isDown || k.z.isDown)  vy = -1;
+    if (k.down.isDown  || k.s.isDown)  vy =  1;
     if (vx && vy) { vx *= 0.707; vy *= 0.707; }
 
-    this._sprite.body.setVelocity(vx, vy);
-
     const moving = vx !== 0 || vy !== 0;
+    const isRun = moving && wantsRun;
+    const speed = isRun ? p.RUN_SPEED : p.SPEED;
+    this._sprite.body.setVelocity(vx * speed, vy * speed);
+    this._updateStamina(isRun, dt);
+
     if (moving) {
       // Horizontal takes priority for facing
       if      (vx < 0) this._facing = 'left';
@@ -205,15 +257,39 @@ class PlayerSystem {
     }
   }
 
-  _buildAnimations() {
+  _updateStamina(isRunning, dt) {
+    const previous = this._stamina;
+    if (isRunning) {
+      const drain = CFG.PLAYER.STAMINA_DRAIN_PER_SEC ?? 35;
+      this._stamina = Math.max(0, this._stamina - drain * dt);
+    } else if (this._stamina < this._maxStamina) {
+      const regen = CFG.PLAYER.STAMINA_REGEN_PER_SEC ?? 20;
+      this._stamina = Math.min(this._maxStamina, this._stamina + regen * dt);
+    }
+
+    if (Math.abs(previous - this._stamina) >= 0.1) this._emitStaminaChanged();
+  }
+
+  _sheetKey(anim) {
+    const assetKey = CFG.PLAYER.HERO_LEVELS?.[this._heroLevel]?.assetKey ?? 'hero_lvl1';
+    const key = `${assetKey}_${anim}`;
+    return this.scene.textures.exists(key) ? key : `sw_${anim}`;
+  }
+
+  _buildAnimations(level = this._heroLevel, replace = false) {
     const s = this.scene;
 
     const ROW = { down:0, left:1, right:2, up:3 };
+    const levelDef = CFG.PLAYER.HERO_LEVELS?.[level] ?? CFG.PLAYER.HERO_LEVELS?.[1];
+    const assetDef = CFG.PLAYER.HERO_ASSETS?.[levelDef?.assetKey] ?? {};
+    const sheets = { ...(CFG.PLAYER.SHEETS ?? {}), ...(assetDef.sheets ?? {}) };
 
     // UPDATED make function: Separates 'gridCols' (physical grid width) 
     // from 'validFrames' (how many frames we actually want to play).
-    const make = (key, tex, dir, gridCols, fps, repeat = -1, validFrames = null) => {
+    const make = (key, anim, dir, gridCols, fps, repeat = -1, validFrames = null) => {
+      if (replace && s.anims.exists(key)) s.anims.remove(key);
       if (s.anims.exists(key)) return;
+      const tex = this._sheetKey(anim);
       const row = ROW[dir];
       
       // If validFrames isn't explicitly passed, assume we use the whole physical row
@@ -239,14 +315,14 @@ class PlayerSystem {
       if (dir === 'up')   idleValidFrames = 3; // NEW: Fix for back (up) idle!
 
       // Note: We pass 12 as the physical grid width, and idleValidFrames as the amount to play
-      make(`idle_${dir}`,    'sw_idle',    dir, 12,  8, -1, idleValidFrames);
-      make(`walk_${dir}`,    'sw_walk',    dir,  6, 10);
-      make(`run_${dir}`,     'sw_run',     dir,  8, 12);
-      make(`attack_${dir}`,  'sw_attack',  dir,  8, 12,  0);
-      make(`walkAtk_${dir}`, 'sw_walkAtk', dir,  6, 10,  0);
-      make(`runAtk_${dir}`,  'sw_runAtk',  dir,  8, 12,  0);
-      make(`hurt_${dir}`,    'sw_hurt',    dir,  5, 10,  0);
-      make(`death_${dir}`,   'sw_death',   dir,  7,  8,  0);
+      make(`idle_${dir}`,    'idle',    dir, sheets.idle?.frames    ?? 12,  8, -1, idleValidFrames);
+      make(`walk_${dir}`,    'walk',    dir, sheets.walk?.frames    ?? 6,  10);
+      make(`run_${dir}`,     'run',     dir, sheets.run?.frames     ?? 8,  12);
+      make(`attack_${dir}`,  'attack',  dir, sheets.attack?.frames  ?? 8,  12,  0);
+      make(`walkAtk_${dir}`, 'walkAtk', dir, sheets.walkAtk?.frames ?? 6,  10,  0);
+      make(`runAtk_${dir}`,  'runAtk',  dir, sheets.runAtk?.frames  ?? 8,  12,  0);
+      make(`hurt_${dir}`,    'hurt',    dir, sheets.hurt?.frames    ?? 5,  10,  0);
+      make(`death_${dir}`,   'death',   dir, sheets.death?.frames   ?? 7,   8,  0);
     });
   }
 }

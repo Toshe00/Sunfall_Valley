@@ -100,6 +100,92 @@ const ENEMY_STATS = {
   },
 };
 
+const ENEMY_XP_REWARDS = {
+  slime: 2,
+  goblin: 4,
+  golem: 8,
+  lizardman1: 10,
+  lizardman2: 12,
+  lizardman3: 14,
+  skeleton1: 16,
+  skeleton2: 18,
+  skeleton3: 20,
+  demon1: 25,
+  demon2: 30,
+  demon3: 35,
+};
+
+const HERO_LEVELS = {
+  1: { xpToNext: 150, assetKey: 'hero_lvl1' },
+  2: { xpToNext: 250, assetKey: 'hero_lvl2' },
+  3: { xpToNext: 350, assetKey: 'hero_lvl3' },
+  4: { xpToNext: 450, assetKey: 'hero_lvl4' },
+  5: { xpToNext: 550, assetKey: 'hero_lvl5' },
+  6: { xpToNext: 650, assetKey: 'hero_lvl6' },
+  7: { xpToNext: 750, assetKey: 'hero_lvl7' },
+  8: { xpToNext: 850, assetKey: 'hero_lvl8' },
+  9: { xpToNext: null, assetKey: 'hero_lvl9' },
+};
+
+const HERO_ASSETS = {
+  hero_lvl1: {
+    basePath: 'assets/characters/swordsman/swordsman_level_1/',
+    sheets: {
+      idle:    { file: 'Swordsman_lvl1_Idle_with_shadow.png',        frames: 12 },
+      walk:    { file: 'Swordsman_lvl1_Walk_with_shadow.png',        frames: 6  },
+      run:     { file: 'Swordsman_lvl1_Run_with_shadow.png',         frames: 8  },
+      attack:  { file: 'Swordsman_lvl1_attack_with_shadow.png',      frames: 8  },
+      walkAtk: { file: 'Swordsman_lvl1_Walk_Attack_with_shadow.png', frames: 6  },
+      runAtk:  { file: 'Swordsman_lvl1_Run_Attack_with_shadow.png',  frames: 8  },
+      hurt:    { file: 'Swordsman_lvl1_Hurt_with_shadow.png',        frames: 5  },
+      death:   { file: 'Swordsman_lvl1_Death_with_shadow.png',       frames: 7  },
+    },
+  },
+  hero_lvl2: {
+    basePath: 'assets/characters/swordsman/swordsman_level_2/',
+    sheets: {
+      idle:    { file: 'Swordsman_lvl2_Idle_with_shadow.png',        frames: 12 },
+      walk:    { file: 'Swordsman_lvl2_Walk_with_shadow.png',        frames: 6  },
+      run:     { file: 'Swordsman_lvl2_Run_with_shadow.png',         frames: 8  },
+      attack:  { file: 'Swordsman_lvl2_attack_with_shadow.png',      frames: 8  },
+      walkAtk: { file: 'Swordsman_lvl2_Walk_Attack_with_shadow.png', frames: 6  },
+      runAtk:  { file: 'Swordsman_lvl2_Run_Attack_with_shadow.png',  frames: 8  },
+      hurt:    { file: 'Swordsman_lvl2_Hurt_with_shadow.png',        frames: 5  },
+      death:   { file: 'Swordsman_lvl2_Death_with_shadow.png',       frames: 7  },
+    },
+  },
+  hero_lvl3: {
+    basePath: 'assets/characters/swordsman/swordsman_level_3/',
+    sheets: {
+      idle:    { file: 'Swordsman_lvl3_Idle_with_shadow.png',        frames: 12 },
+      walk:    { file: 'Swordsman_lvl3_Walk_with_shadow.png',        frames: 6  },
+      run:     { file: 'Swordsman_lvl3_Run_with_shadow.png',         frames: 8  },
+      attack:  { file: 'Swordsman_lvl3_attack_with_shadow.png',      frames: 8  },
+      walkAtk: { file: 'Swordsman_lvl3_Walk_Attack_with_shadow.png', frames: 6  },
+      runAtk:  { file: 'Swordsman_lvl3_Run_Attack_with_shadow.png',  frames: 8  },
+      hurt:    { file: 'Swordsman_lvl3_Hurt_with_shadow.png',        frames: 5  },
+      death:   { file: 'Swordsman_lvl3_Death_with_shadow.png',       frames: 7  },
+    },
+  },
+};
+
+for (let level = 4; level <= 9; level++) {
+  const prefix = `lvl${level}`;
+  HERO_ASSETS[`hero_lvl${level}`] = {
+    basePath: `assets/characters/swordsman/swordsman_level_${level}/`,
+    sheets: {
+      idle:    { file: `${prefix}_Idle_with_shadow.png`,        frames: 12 },
+      walk:    { file: `${prefix}_Walk_with_shadow.png`,        frames: 6  },
+      run:     { file: `${prefix}_Run_with_shadow.png`,         frames: 8  },
+      attack:  { file: `${prefix}_attack_with_shadow.png`,      frames: 7  },
+      walkAtk: { file: `${prefix}_Walk_Attack_with_shadow.png`, frames: 6  },
+      runAtk:  { file: `${prefix}_Run_Attack_with_shadow.png`,  frames: 8  },
+      hurt:    { file: `${prefix}_Hurt_with_shadow.png`,        frames: 5  },
+      death:   { file: `${prefix}_Death_with_shadow.png`,       frames: 7  },
+    },
+  };
+}
+
 const CFG = {
   DEBUG_GRID,
 
@@ -209,6 +295,9 @@ const CFG = {
     BODY_H       : 18,
     INTERACT_DIST: 72,
     MAX_HEALTH    : 100,
+    MAX_STAMINA   : 100,
+    STAMINA_DRAIN_PER_SEC: 35,
+    STAMINA_REGEN_PER_SEC: 20,
     ATTACK_DAMAGE : 25,
     ATTACK_RANGE  : 42,
     ATTACK_ARC_W  : 44,
@@ -220,6 +309,11 @@ const CFG = {
     FRAME_W      : 64,
     FRAME_H      : 64,
     BASE_PATH    : 'assets/characters/swordsman/swordsman_level_1/',
+    START_LEVEL  : 1,
+    HERO_LEVELS,
+    HERO_ASSETS,
+    XP_REWARDS   : ENEMY_XP_REWARDS,
+    DEFAULT_XP_REWARD: 1,
     SHEETS: {
       idle    : { file:'Swordsman_lvl1_Idle_with_shadow.png',        frames:12 },
       walk    : { file:'Swordsman_lvl1_Walk_with_shadow.png',        frames:6  },

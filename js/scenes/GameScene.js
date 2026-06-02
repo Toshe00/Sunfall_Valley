@@ -80,7 +80,9 @@ class GameScene extends Phaser.Scene {
       x: CFG.PLAYER.START_X,
       y: CFG.PLAYER.START_Y,
     };
+    this._playerSpawn = { x: playerSpawn.x, y: playerSpawn.y };
     this._player = new PlayerSystem(this, playerSpawn.x, playerSpawn.y);
+    this._heroXP = new HeroXPSystem(this, this._player);
     this._player.sprite.setCollideWorldBounds(true);
     this.cameras.main.setZoom(2.0);
     this.cameras.main.startFollow(this._player.sprite, true, 0.08, 0.08);
@@ -89,11 +91,16 @@ class GameScene extends Phaser.Scene {
       this.registry.set('playerHealth', { current, max });
       this.scene.get('UIScene')?._healthBar?.setHealth(current, max);
     });
+    this.events.on('player-stamina-changed', (current, max) => {
+      this.registry.set('playerStamina', { current, max });
+      this.scene.get('UIScene')?._healthBar?.setStamina(current, max);
+    });
     this.events.on('player-death', () => {
-      this.registry.set('playerDead', true);
+      this._schedulePlayerRespawn();
     });
     this.events.on('damage-player', (amount = 10) => this.damagePlayer(amount));
     this.scene.get('UIScene')?._healthBar?.setHealth(this._player.health, this._player.maxHealth);
+    this.registry.set('playerStamina', { current: this._player.stamina, max: this._player.maxStamina });
 
     this._buildCollisions(jsonData.layers);
 
@@ -163,7 +170,7 @@ class GameScene extends Phaser.Scene {
     this._fruitTrees.update();
     this._enemySystem?.update(time, delta);
 
-    if (Phaser.Input.Keyboard.JustDown(this._interactKey)) {
+    if (Phaser.Input.Keyboard.JustDown(this._interactKey) && !this._player?.isDead && !this.registry.get('playerInputLocked')) {
       const activeKey = this.scene.get('UIScene')?._hotbar?.activeItem?.key ?? null;
       const harvestedFruit = this._fruitTrees.tryHarvest();
       if (!harvestedFruit) {
@@ -178,7 +185,7 @@ class GameScene extends Phaser.Scene {
   }
 
   _handlePointerAttack(pointer) {
-    if (pointer.button !== 0 || this._player?.isDead) return;
+    if (pointer.button !== 0 || this._player?.isDead || this.registry.get('playerInputLocked')) return;
     if (this.scene.get('UIScene')?._inventory?.isOpen?.()) return;
     if (!this._isSwordSelected()) return;
 
@@ -197,6 +204,29 @@ class GameScene extends Phaser.Scene {
 
   damagePlayer(amount = 10) {
     return this._player?.takeDamage(amount) ?? false;
+  }
+
+  _schedulePlayerRespawn() {
+    if (this._playerRespawnEvent) return;
+    this.registry.set('playerDead', true);
+    this.registry.set('playerInputLocked', true);
+    this._player.sprite.body?.setVelocity(0, 0);
+    this._playerRespawnEvent = this.time.delayedCall(CFG.PLAYER.RESPAWN_DELAY_MS ?? 2500, () => {
+      this._playerRespawnEvent = null;
+      this._respawnPlayer();
+    });
+  }
+
+  _respawnPlayer() {
+    const spawn = this._playerSpawn ?? CFG.PLAYER.SPAWN ?? {
+      x: CFG.PLAYER.START_X,
+      y: CFG.PLAYER.START_Y,
+    };
+    this._player.respawnAt(spawn.x, spawn.y);
+    this.registry.set('playerDead', false);
+    this.registry.set('playerInputLocked', false);
+    this.cameras.main.startFollow(this._player.sprite, true, 0.08, 0.08);
+    this.cameras.main.centerOn(this._player.x, this._player.y);
   }
 
   _damageEnemiesInAttackBox() {
@@ -272,7 +302,7 @@ class GameScene extends Phaser.Scene {
   }
 
   _damageEnemyTarget(target, amount) {
-    if (typeof target.takeDamage === 'function') return target.takeDamage(amount) !== false;
+    if (typeof target.takeDamage === 'function') return target.takeDamage(amount, { source: 'player' }) !== false;
     if (typeof target.receiveDamage === 'function') return target.receiveDamage(amount) !== false;
     if (typeof target.damage === 'function') return target.damage(amount) !== false;
     if (typeof target.hit === 'function') return target.hit(amount) !== false;
