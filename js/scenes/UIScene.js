@@ -23,10 +23,10 @@ class UIScene extends Phaser.Scene {
     this._inventory.addItem('gold_pickaxe',   1, 'Gold Pickaxe',   'gold_pickaxe');
 
     // Axes
-    this._inventory.addItem('oak_axe',    1, 'Oak Axe',    'oak_axe');
+    this._inventory.addItem('oak_axe',    1, 'Gold Axe',   'oak_axe');
     this._inventory.addItem('pine_axe',   1, 'Pine Axe',   'pine_axe');
     this._inventory.addItem('walnut_axe', 1, 'Walnut Axe', 'walnut_axe');
-    this._inventory.addItem('gold_axe',   1, 'Gold Axe',   'gold_axe');
+    this._inventory.addItem('gold_axe',   1, 'Ancien Axe', 'gold_axe');
 
     // Weapon
     this._inventory.addItem('sword', 1, 'Epee', 'sword');
@@ -312,8 +312,8 @@ class UIScene extends Phaser.Scene {
       { text:'🎒 Press [TAB] to open your Inventory',                                          delay:3000  },
       { text:'🌱 Select a seed → walk to a farm plot → click a hole to plant',               delay:6000  },
       { text:'⛏️  [F] near rocks to mine  |  Match the exact pickaxe to the ore',            delay:9500  },
-      { text:'🪓 [F] near trees to chop  |  Oak/Pine/Walnut Axe, or Gold Axe for ext. trees', delay:13000 },
-      { text:'⚒️  Gold Axe → Ext. trees, Cactus, Slime Shroom  |  Gold Pickaxe → Undead Crystal, Lava Rock', delay:16500 },
+      { text:'🪓 [F] near trees to chop  |  Gold/Pine/Walnut Axe, or Ancien Axe for ext. trees', delay:13000 },
+      { text:'⚒️  Ancien Axe → Ext. trees, Cactus, Slime Shroom  |  Gold Pickaxe → Undead Crystal, Lava Rock', delay:16500 },
     ];
 
     msgs.forEach(({text, delay}) => {

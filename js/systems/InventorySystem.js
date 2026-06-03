@@ -202,7 +202,13 @@ class InventorySystem {
   _resolveIcon(itemKey, passedIconKey) {
     const base = itemKey.replace(/_harvested$|_crop$/, '');
     const isHarvested = itemKey.endsWith('_harvested') || itemKey.endsWith('_crop');
-    const candidates = passedIconKey ? [passedIconKey] : [];
+    const oreIconOverride = {
+      bronze: 'inv_icon_bronze',
+      iron: 'inv_icon_iron',
+      gold: 'inv_icon_gold',
+    }[base];
+    const candidates = oreIconOverride ? [oreIconOverride] : [];
+    if (passedIconKey) candidates.push(passedIconKey);
     if (isHarvested) {
       candidates.push(`inv_icon_${base}`, `crop_${base}`, `seed_icon_${base}`);
     } else {

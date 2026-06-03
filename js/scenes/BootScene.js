@@ -63,10 +63,10 @@ class BootScene extends Phaser.Scene {
     this.load.image('ui_character_panel',  'assets/ui/PNG/character_panel.png');
 
     // ── Axes ──────────────────────────────────────────────────────────────
-    this.load.image('oak_axe',    'assets/items/weapons/oak_axe.png');
+    this.load.image('oak_axe',    'assets/items/weapons/gold_axe.png');
     this.load.image('pine_axe',   'assets/items/weapons/pine_axe.png');
     this.load.image('walnut_axe', 'assets/items/weapons/walnut_axe.png');
-    this.load.image('gold_axe',   'assets/items/weapons/gold_axe.png');
+    this.load.image('gold_axe',   'assets/items/weapons/gold_axe_icon_4_12.png');
 
     // ── Pickaxes ──────────────────────────────────────────────────────────
     this.load.image('stone_pickaxe',  'assets/items/weapons/stone_pick_Axe.png');
@@ -104,9 +104,9 @@ class BootScene extends Phaser.Scene {
 
     // ── Ore inventory icons ───────────────────────────────────────────────
     this.load.image('inv_icon_stone',  'assets/items/ore_tree/PNG/rocks/rock_small.png');
-    this.load.image('inv_icon_bronze', 'assets/items/ore_tree/PNG/bronze/Bronze_small.png');
-    this.load.image('inv_icon_iron',   'assets/items/ore_tree/PNG/Iron/Iron_small.png');
-    this.load.image('inv_icon_gold',   'assets/items/ore_tree/PNG/gold/gold_small.png');
+    this.load.image('inv_icon_bronze', 'assets/items/ore_tree/PNG/bronze_ore_icon.png');
+    this.load.image('inv_icon_iron',   'assets/items/ore_tree/PNG/iron_ore_icon.png');
+    this.load.image('inv_icon_gold',   'assets/items/ore_tree/PNG/gold_ore_icon.png');
     // Undead ore inventory icon — the small crystal from the right extension
     this.load.image('inv_icon_undead_ore',
       'assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Crystal_shadow1_3.png');

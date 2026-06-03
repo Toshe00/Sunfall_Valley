@@ -498,7 +498,12 @@ class HotbarSystem {
   _resolveIcon(key, passedKey) {
     if (!key) return null;
     const base = key.replace(/_harvested$|_crop$/, '');
-    const tries = [];
+    const oreIconOverride = {
+      bronze: 'inv_icon_bronze',
+      iron: 'inv_icon_iron',
+      gold: 'inv_icon_gold',
+    }[base];
+    const tries = oreIconOverride ? [oreIconOverride] : [];
     if (passedKey) tries.push(passedKey);
     tries.push(`seed_icon_${key}`, `inv_icon_${base}`, key);
     return tries.find(k => k && this.scene.textures.exists(k)) ?? null;
