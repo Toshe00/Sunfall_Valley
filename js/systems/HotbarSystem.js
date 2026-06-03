@@ -6,6 +6,14 @@ class HotbarSystem {
   static STRIP = { x:16, y:531, w:2094, h:259 };
   static SEPS  = [24,265,469,672,876,1079,1267,1470,1673,1864,2102];
   static N     = 10;
+  static HOTBAR_KEYS = {
+    '&': 0, '\u00e9': 1, '"': 2, "'": 3, '(': 4,
+    '-': 5, '\u00e8': 6, '_': 7, '\u00e7': 8, '\u00e0': 9,
+  };
+  static HOTBAR_CODES = {
+    Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Digit5: 4,
+    Digit6: 5, Digit7: 6, Digit8: 7, Digit9: 8, Digit0: 9,
+  };
 
   static get SC() { return 72 / 207; }
   static get DW() { return Math.round(2094 * HotbarSystem.SC); }
@@ -32,6 +40,10 @@ class HotbarSystem {
 
   get activeItem() {
     return (this._active !== null) ? this._slots[this._active] : null;
+  }
+
+  selectHotbarSlot(idx) {
+    this._onSlotClick(idx);
   }
 
   beginInventoryDrag(key, label, iconKey, qty, px, py) {
@@ -125,7 +137,7 @@ class HotbarSystem {
       zone.on('pointerdown', (ptr) => {
         if (!ptr.leftButtonDown()) return;
         if (this._drag) return;
-        this._onSlotClick(i);
+        this.selectHotbarSlot(i);
       });
 
       zone.on('dragstart', (ptr) => this._onSlotDragStart(i, ptr));
@@ -141,6 +153,7 @@ class HotbarSystem {
     this.scene.input.on('pointerup', (ptr) => {
       if (this._drag?.src === 'inventory') this._onPointerUp(ptr);
     });
+    this.scene.input.keyboard.on('keydown', (event) => this._onHotbarKeyDown(event));
     this.scene.scale.on('resize', this._layoutHotbar);
 
     this._built = true;
@@ -268,6 +281,19 @@ class HotbarSystem {
       this._applyActive(item);
     }
     this._render();
+  }
+
+  _onHotbarKeyDown(event) {
+    if (this.scene.registry.get('playerInputLocked')) return;
+    if (this._drag) return;
+
+    const keyIndex = HotbarSystem.HOTBAR_KEYS[event.key];
+    const codeIndex = HotbarSystem.HOTBAR_CODES[event.code];
+    const idx = keyIndex ?? codeIndex;
+    if (idx === undefined) return;
+
+    event.preventDefault?.();
+    this.selectHotbarSlot(idx);
   }
 
   _applyActive(item) {

@@ -7,6 +7,8 @@ class InventorySystem {
     this._page         = 0;
     this._onSelectSeed = null;
     this._icons        = [];
+    this._slotRects    = [];
+    this._drag         = null;
     this._build();
   }
 
@@ -60,21 +62,30 @@ class InventorySystem {
       return;
     }
 
-    const ex = this._items.find(i => i.key === key);
+    const ex = this._items.find(i => i?.key === key);
     if (ex) { ex.qty += qty; ex.label = label; if (iconKey) ex.iconKey = iconKey; }
-    else     this._items.push({ key, qty, label, iconKey: iconKey || null });
+    else {
+      const emptyIdx = this._items.findIndex(i => !i);
+      const nextItem = { key, qty, label, iconKey: iconKey || null };
+      if (emptyIdx >= 0) this._items[emptyIdx] = nextItem;
+      else this._items.push(nextItem);
+    }
     if (this._open) this.refresh();
   }
 
   hasItem(key, qty = 1) {
-    return (this._items.find(i => i.key === key)?.qty ?? 0) >= qty;
+    return (this._items.find(i => i?.key === key)?.qty ?? 0) >= qty;
   }
 
   removeItem(key, qty = 1) {
-    const item = this._items.find(i => i.key === key);
+    const idx = this._items.findIndex(i => i?.key === key);
+    const item = this._items[idx];
     if (!item) return false;
     item.qty -= qty;
-    if (item.qty <= 0) this._items = this._items.filter(i => i.key !== key);
+    if (item.qty <= 0) {
+      this._items[idx] = null;
+      this._trimEmptyTail();
+    }
     if (this._open) this.refresh();
     // Always sync hotbar qty badges even when inventory panel is closed
     this._notifyHotbar();
@@ -82,15 +93,16 @@ class InventorySystem {
   }
 
   removeItemCompletely(key) {
-    this._items = this._items.filter(i => i.key !== key);
+    this._items = this._items.filter(i => i?.key !== key);
     if (this._open) this.refresh();
     this._notifyHotbar();
   }
 
   takeItemCompletely(key) {
-    const idx = this._items.findIndex(i => i.key === key);
+    const idx = this._items.findIndex(i => i?.key === key);
     if (idx < 0) return null;
     const [item] = this._items.splice(idx, 1);
+    this._trimEmptyTail();
     if (this._open) this.refresh();
     this._notifyHotbar();
     return item;
@@ -113,6 +125,80 @@ class InventorySystem {
     if (hotbar) hotbar.refresh();
   }
 
+  _trimEmptyTail() {
+    while (this._items.length > 0 && !this._items[this._items.length - 1]) {
+      this._items.pop();
+    }
+  }
+
+  _moveItemWithinInventory(fromIndex, toIndex) {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return false;
+
+    const source = this._items[fromIndex];
+    if (!source || (source.qty ?? 0) <= 0) return false;
+
+    while (this._items.length <= toIndex) this._items.push(null);
+
+    const target = this._items[toIndex] ?? null;
+    if (target && target.key === source.key) {
+      target.qty = (target.qty ?? 0) + (source.qty ?? 0);
+      if (source.label) target.label = source.label;
+      if (source.iconKey) target.iconKey = source.iconKey;
+      this._items[fromIndex] = null;
+    } else {
+      this._items[toIndex] = source;
+      this._items[fromIndex] = target;
+    }
+
+    this._trimEmptyTail();
+    if (this._open) this.refresh();
+    this._notifyHotbar();
+    return true;
+  }
+
+  _getSlotIndexAt(px, py) {
+    if (!this._open) return -1;
+    const { cols, rows, colCx, rowCy } = this._gridLayout();
+    this._buildSlotRects(cols, rows, colCx, rowCy);
+    return this._slotRects.find((slot) => (
+      Phaser.Geom.Rectangle.Contains(slot.rect, px, py)
+    ))?.index ?? -1;
+  }
+
+  _gridLayout() {
+    const SC = this._SC;
+    return {
+      cols: 5,
+      rows: 4,
+      colCx: [47, 75, 101, 126, 153].map(v => Math.round(v * SC)),
+      rowCy: [57, 82, 107, 132].map(v => Math.round(v * SC)),
+    };
+  }
+
+  _buildSlotRects(cols, rows, colCx, rowCy) {
+    const size = Math.round(24 * this._SC);
+    this._slotRects = [];
+    const scaleX = this._container.scaleX || 1;
+    const scaleY = this._container.scaleY || 1;
+    const pageStart = this._page * cols * rows;
+
+    for (let i = 0; i < cols * rows; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const cx = this._container.x + colCx[col] * scaleX;
+      const cy = this._container.y + rowCy[row] * scaleY;
+      this._slotRects.push({
+        index: pageStart + i,
+        rect: new Phaser.Geom.Rectangle(
+          cx - (size * scaleX) / 2,
+          cy - (size * scaleY) / 2,
+          size * scaleX,
+          size * scaleY
+        ),
+      });
+    }
+  }
+
   _resolveIcon(itemKey, passedIconKey) {
     const base = itemKey.replace(/_harvested$|_crop$/, '');
     const isHarvested = itemKey.endsWith('_harvested') || itemKey.endsWith('_crop');
@@ -131,10 +217,8 @@ class InventorySystem {
   refresh() {
     this._clearIcons();
     const SC   = this._SC;
-    const COLS = 5, ROWS = 4, PER_PAGE = COLS * ROWS;
-
-    const COL_CX = [47, 75, 101, 126, 153].map(v => Math.round(v * SC));
-    const ROW_CY = [57, 82, 107, 132].map(v  => Math.round(v * SC));
+    const { cols: COLS, rows: ROWS, colCx: COL_CX, rowCy: ROW_CY } = this._gridLayout();
+    const PER_PAGE = COLS * ROWS;
 
     const ICON_MAX = Math.round(14 * SC);   
     const ICON_OY  = Math.round(-3 * SC);   
@@ -142,8 +226,11 @@ class InventorySystem {
 
     const pageStart = this._page * PER_PAGE;
     const pageItems = this._items.slice(pageStart, pageStart + PER_PAGE);
+    this._buildSlotRects(COLS, ROWS, COL_CX, ROW_CY);
 
     pageItems.forEach((item, i) => {
+      if (!item || (item.qty ?? 0) <= 0) return;
+
       const col = i % COLS;
       const row = Math.floor(i / COLS);
       const cx  = COL_CX[col];
@@ -204,6 +291,7 @@ class InventorySystem {
       const capturedLabel = item.label;
       const capturedIcon  = item.iconKey;
       const capturedQty   = item.qty;
+      const capturedIndex = pageStart + i;
       let wasDragging = false;
 
       icon.setInteractive({ useHandCursor: true, draggable: true });
@@ -211,11 +299,19 @@ class InventorySystem {
 
       icon.on('dragstart', (ptr) => {
         wasDragging = true;
+        this._drag = { srcIndex: capturedIndex, key: capturedKey };
         const hotbar = this.scene._hotbar;
         if (hotbar) {
           hotbar.beginInventoryDrag(capturedKey, capturedLabel, capturedIcon, capturedQty, ptr.x, ptr.y);
         }
       });
+
+      icon.on('drag', (ptr) => {
+        const hotbar = this.scene._hotbar;
+        if (hotbar?._drag?.src === 'inventory') hotbar._onPointerMove(ptr);
+      });
+
+      icon.on('dragend', (ptr) => this._onInventoryDragEnd(ptr));
 
       icon.on('pointerup', () => {
         if (wasDragging) {
@@ -252,6 +348,17 @@ class InventorySystem {
   _clearIcons() {
     this._icons.forEach(o => { this._container.remove(o); o.destroy(); });
     this._icons = [];
+  }
+
+  _onInventoryDragEnd(ptr) {
+    if (!this._drag) return;
+
+    const drag = this._drag;
+    this._drag = null;
+    const targetIndex = this._getSlotIndexAt(ptr.x, ptr.y);
+    if (targetIndex < 0) return;
+
+    this._moveItemWithinInventory(drag.srcIndex, targetIndex);
   }
 
   _updatePageIndicator() {
