@@ -66,13 +66,13 @@ class BootScene extends Phaser.Scene {
     this.load.image('oak_axe',    'assets/items/weapons/oak_axe.png');
     this.load.image('pine_axe',   'assets/items/weapons/pine_axe.png');
     this.load.image('walnut_axe', 'assets/items/weapons/walnut_axe.png');
-    this.load.image('gold_axe',   'assets/items/weapons/walnut_axe.png');
+    this.load.image('gold_axe',   'assets/items/weapons/gold_axe.png');
 
     // ── Pickaxes ──────────────────────────────────────────────────────────
     this.load.image('stone_pickaxe',  'assets/items/weapons/stone_pick_Axe.png');
     this.load.image('bronze_pickaxe', 'assets/items/weapons/Bronze_pick_Axe.png');
     this.load.image('iron_pickaxe',   'assets/items/weapons/iron_pick_axe.png');
-    this.load.image('gold_pickaxe',   'assets/items/weapons/iron_pick_axe.png');
+    this.load.image('gold_pickaxe',   'assets/items/weapons/gold_pick.png');
 
     // Sword
     this.load.image('sword', 'assets/items/weapon_icon_2/Icons/Icon_4_06.png');
@@ -118,6 +118,7 @@ class BootScene extends Phaser.Scene {
     this.load.image('inv_icon_oak_wood',    'assets/items/ore_tree/PNG/oak_wood_icon.png');
     this.load.image('inv_icon_pine_wood',   'assets/items/ore_tree/PNG/pine_wood_icon.png');
     this.load.image('inv_icon_walnut_wood', 'assets/items/ore_tree/PNG/wallnut_wood_icon.png');
+    this.load.image('inv_icon_ancient_wood','assets/items/ore_tree/PNG/ancient_wood_icon.png');
     this.load.image('inv_icon_apple',       'assets/items/inventory/Apple_HL.png');
 
     // ── Helper: register a dynamic-prop image under key "dp_<resolvedPath>" ─

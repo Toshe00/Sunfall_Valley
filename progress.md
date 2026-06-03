@@ -113,3 +113,15 @@ TODO:
 - Added HotbarSystem HOTBAR_KEYS for & / e-acute / double quote / apostrophe / ( / - / e-grave / _ / c-cedilla / a-grave and HOTBAR_CODES for Digit1..Digit0. Mouse selection now calls the public selectHotbarSlot(index), and keyboard shortcuts call the same path while respecting playerInputLocked and active drags.
 - Added hotbar-keyboard-shortcuts-test covering Digit1..Digit0, AZERTY character keys, visible selected-slot highlight, apple selection then E consumption, no sword attack while apple is active, and sword attack after keyboard-selecting slot 1.
 - Verified with Playwright: hotbar-keyboard-shortcuts-test, hotbar-inventory-transfer-test, inventory-drag-swap-test, apple-consumable-test, seed-depletion-test, sword-ui-test, and the develop-web-game smoke client all pass. Screenshots confirm the selected hotbar slot and launch modal remain visually correct.
+- Current prompt: Corriger l'icone d'inventaire/hotbar du bois recupere depuis l'arbre Ancient Wood.
+- Added assets/items/ore_tree/PNG/ancient_wood_icon.png from the provided ancient wood reference image. BootScene now loads it as inv_icon_ancient_wood.
+- Updated only TreeSystem TREE_TYPES.ext_tree.iconKey from the tree prop texture to inv_icon_ancient_wood. The drop key ancient_wood, label Ancient Wood, yield quantity 4, chopping logic, respawn, and other tree resources are unchanged.
+- Verified with targeted Playwright only: ancient-wood-icon-test confirms inv_icon_ancient_wood is loaded, ext_tree still drops ancient_wood x4, inventory renders the wood icon before transfer, and hotbar renders the same wood icon after drag. Screenshot confirms the hotbar shows the wood resource icon, not the tree.
+- Current prompt: Remplacer les icones Gold Pick et Gold Axe dans l'inventaire/hotbar.
+- Added assets/items/weapons/gold_pick.png from crafted item set 1 icon_3_16 and assets/items/weapons/gold_axe.png from crafted item set 2 Icon_4_15. BootScene now loads gold_pickaxe from gold_pick.png and gold_axe from gold_axe.png.
+- Tool keys, labels, stats, mining, chopping, inventory item names, and drag/drop behavior are unchanged.
+- Verified with targeted Playwright only: gold-tool-icons-test confirms both textures load, Gold Pick and Gold Axe render in inventory, and after dragging to hotbar the slots render gold_pickaxe and gold_axe. Screenshot confirms the new gold pick and gold axe icons are visible in the hotbar.
+- Current prompt: Corriger l'erreur 404 / ASSET MISSING / MAP DECORATION MISSING pour lich_shadow1.png.
+- Fixed the case-sensitive Tiled collection entry in assets/world/2dmap.json from lich_shadow1.png to Lich_shadow1.png, matching the existing tracked asset file for GitHub Pages.
+- Did not change decoration systems, enemies, map layers, controls, inventory, hotbar, or combat.
+- Verified with targeted Playwright only: lich-asset-test confirms both Lich_shadow1 map entries resolve to the exact-case path, the texture is loaded, one Lich decoration renders, and there are no relevant 404, [ASSET MISSING], or [MAP DECORATION MISSING] console warnings for this asset.

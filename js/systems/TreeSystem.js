@@ -31,7 +31,7 @@ class TreeSystem {
       walnut: { axeKey:'walnut_axe', label:'Walnut',      hitR:24, yieldWood:5, respawnMs:120_000, stumpOffsetY: 0, dropKey:'walnut_wood',    iconKey:'inv_icon_walnut_wood' },
 
       // ── Extension trees (all require gold_axe) ───────────────────────────
-      ext_tree:      { axeKey:'gold_axe', label:'Ancient',      hitR:26, yieldWood:4, respawnMs:150_000, stumpOffsetY: 0,               dropKey:'ancient_wood',     iconKey:'dp_assets/world/dynamic_props/Tree2.png' },
+      ext_tree:      { axeKey:'gold_axe', label:'Ancient',      hitR:26, yieldWood:4, respawnMs:150_000, stumpOffsetY: 0,               dropKey:'ancient_wood',     iconKey:'inv_icon_ancient_wood' },
       desert_tree:   { axeKey:'gold_axe', label:'Desert',       hitR:20, yieldWood:3, respawnMs:120_000, stumpOffsetY: 0,               dropKey:'desert_wood',      iconKey:'dp_assets/world/craftpix-net-874337-desert-tileset-top-down-pixel-art/PNG/Objects_separately/Tree4_sand_shadow2.png' },
       cactus:        { axeKey:'gold_axe', label:'Cactus',       hitR:18, yieldWood:2, respawnMs: 90_000, stumpOffsetY: 0, noStump:true,  dropKey:'cactus_wood',      iconKey:'dp_assets/world/craftpix-net-874337-desert-tileset-top-down-pixel-art/PNG/Objects_separately/Cactus3_ground_shadow1.png' },
       undead_tree:   { axeKey:'gold_axe', label:'Undead',       hitR:22, yieldWood:5, respawnMs:180_000, stumpOffsetY: 0,               dropKey:'undead_wood',      iconKey:'dp_assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Tree_shadow2_2.png' },
