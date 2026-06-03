@@ -115,16 +115,32 @@ const ENEMY_XP_REWARDS = {
   demon3: 35,
 };
 
+const CONSUMABLES = {
+  apple: { heal: 10, label: 'Apple' },
+};
+
 const HERO_LEVELS = {
-  1: { xpToNext: 150, assetKey: 'hero_lvl1' },
-  2: { xpToNext: 250, assetKey: 'hero_lvl2' },
-  3: { xpToNext: 350, assetKey: 'hero_lvl3' },
-  4: { xpToNext: 450, assetKey: 'hero_lvl4' },
-  5: { xpToNext: 550, assetKey: 'hero_lvl5' },
-  6: { xpToNext: 650, assetKey: 'hero_lvl6' },
-  7: { xpToNext: 750, assetKey: 'hero_lvl7' },
-  8: { xpToNext: 850, assetKey: 'hero_lvl8' },
+  1: { xpToNext: 100, assetKey: 'hero_lvl1' },
+  2: { xpToNext: 200, assetKey: 'hero_lvl2' },
+  3: { xpToNext: 300, assetKey: 'hero_lvl3' },
+  4: { xpToNext: 400, assetKey: 'hero_lvl4' },
+  5: { xpToNext: 500, assetKey: 'hero_lvl5' },
+  6: { xpToNext: 600, assetKey: 'hero_lvl6' },
+  7: { xpToNext: 700, assetKey: 'hero_lvl7' },
+  8: { xpToNext: 800, assetKey: 'hero_lvl8' },
   9: { xpToNext: null, assetKey: 'hero_lvl9' },
+};
+
+const HERO_STATS = {
+  1: { maxHp: 100, attackDamage: 10 },
+  2: { maxHp: 120, attackDamage: 14 },
+  3: { maxHp: 140, attackDamage: 18 },
+  4: { maxHp: 165, attackDamage: 23 },
+  5: { maxHp: 190, attackDamage: 28 },
+  6: { maxHp: 215, attackDamage: 34 },
+  7: { maxHp: 240, attackDamage: 40 },
+  8: { maxHp: 270, attackDamage: 47 },
+  9: { maxHp: 300, attackDamage: 55 },
 };
 
 const HERO_ASSETS = {
@@ -188,6 +204,7 @@ for (let level = 4; level <= 9; level++) {
 
 const CFG = {
   DEBUG_GRID,
+  CONSUMABLES,
 
   // ── Map ──────────────────────────────────────────────────────────────────
   MAP_JSON : 'assets/world/2dmap.json?v=2',
@@ -298,6 +315,7 @@ const CFG = {
     MAX_STAMINA   : 100,
     STAMINA_DRAIN_PER_SEC: 35,
     STAMINA_REGEN_PER_SEC: 20,
+    STAMINA_SPRINT_RESUME : 12,
     ATTACK_DAMAGE : 25,
     ATTACK_RANGE  : 42,
     ATTACK_ARC_W  : 44,
@@ -311,6 +329,7 @@ const CFG = {
     BASE_PATH    : 'assets/characters/swordsman/swordsman_level_1/',
     START_LEVEL  : 1,
     HERO_LEVELS,
+    HERO_STATS,
     HERO_ASSETS,
     XP_REWARDS   : ENEMY_XP_REWARDS,
     DEFAULT_XP_REWARD: 1,

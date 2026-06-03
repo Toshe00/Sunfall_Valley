@@ -11,10 +11,18 @@ class PlayerSystem {
     this._facing = 'down';
     this._state  = 'idle';
     this._heroLevel = CFG.PLAYER.START_LEVEL ?? 1;
-    this._maxHealth = CFG.PLAYER.MAX_HEALTH ?? 100;
+    const startStats = this._heroStats(this._heroLevel);
+    this._maxHealth = startStats.maxHp;
+    this._attackDamage = startStats.attackDamage;
     this._health = this._maxHealth;
     this._maxStamina = CFG.PLAYER.MAX_STAMINA ?? 100;
     this._stamina = this._maxStamina;
+    this._sprintLocked = false;
+    Object.defineProperty(this, '_sprintExhausted', {
+      get: () => this._sprintLocked,
+      set: (value) => { this._sprintLocked = value; },
+      configurable: true,
+    });
     this._nextAttackAt = 0;
     this._invulnerableUntil = 0;
     if (!scene.anims.exists('idle_down')) this._buildAnimations(this._heroLevel);
@@ -32,10 +40,21 @@ class PlayerSystem {
   get maxStamina() { return this._maxStamina; }
   get isDead() { return this._state === 'dead'; }
   get heroLevel() { return this._heroLevel; }
+  get attackDamage() { return this._attackDamage; }
 
   update(delta = 16) {
     if (this._state === 'dead') {
       this._sprite.body.setVelocity(0, 0);
+      return;
+    }
+    if (this.scene.registry.get('playerInputLocked')) {
+      this._sprite.body.setVelocity(0, 0);
+      if (this._state !== 'idle') {
+        this._state = 'idle';
+        this._sprite.play(`idle_${this._facing}`, true);
+      }
+      this._updateStamina(false, Math.min(delta ?? 16, 50) / 1000);
+      this._sprite.setDepth(this._sprite.y);
       return;
     }
     if (this._state === 'attack' || this._state === 'hurt') return;
@@ -102,6 +121,7 @@ class PlayerSystem {
     this.scene.tweens.killTweensOf(this._sprite);
     this._health = this._maxHealth;
     this._stamina = this._maxStamina;
+    this._sprintLocked = false;
     this._state = 'idle';
     this._facing = 'down';
     this._nextAttackAt = 0;
@@ -125,6 +145,7 @@ class PlayerSystem {
 
     const currentAnimKey = this._sprite.anims.currentAnim?.key ?? `idle_${this._facing}`;
     this._heroLevel = nextLevel;
+    this._applyHeroStats(this._heroLevel, true);
     this._buildAnimations(this._heroLevel, true);
     this._sprite.setTexture(this._sheetKey('idle'), 0);
 
@@ -132,6 +153,29 @@ class PlayerSystem {
       ? currentAnimKey
       : `idle_${this._facing}`;
     this._sprite.play(replayKey, true);
+  }
+
+  _heroStats(level = this._heroLevel) {
+    const stats = CFG.PLAYER.HERO_STATS?.[level] ?? CFG.PLAYER.HERO_STATS?.[1] ?? {};
+    return {
+      maxHp: stats.maxHp ?? CFG.PLAYER.MAX_HEALTH ?? 100,
+      attackDamage: stats.attackDamage ?? CFG.PLAYER.ATTACK_DAMAGE ?? 25,
+    };
+  }
+
+  _applyHeroStats(level = this._heroLevel, refillHealth = false) {
+    const stats = this._heroStats(level);
+    this._maxHealth = stats.maxHp;
+    this._attackDamage = stats.attackDamage;
+    this._health = refillHealth
+      ? this._maxHealth
+      : Math.min(this._health, this._maxHealth);
+    this._emitHealthChanged();
+    this.scene.events.emit('player-stats-changed', {
+      level: this._heroLevel,
+      maxHp: this._maxHealth,
+      attackDamage: this._attackDamage,
+    });
   }
 
   _playHurt() {
@@ -219,7 +263,6 @@ class PlayerSystem {
     const k     = this._keys;
     const p     = CFG.PLAYER;
     const dt = Math.min(delta ?? 16, 50) / 1000;
-    const wantsRun = k.shift.isDown && this._stamina > 0;
 
     let vx = 0, vy = 0;
     if (k.left.isDown  || k.a.isDown || k.q.isDown)  vx = -1;
@@ -229,10 +272,21 @@ class PlayerSystem {
     if (vx && vy) { vx *= 0.707; vy *= 0.707; }
 
     const moving = vx !== 0 || vy !== 0;
-    const isRun = moving && wantsRun;
+    const shiftDown = k.shift.isDown;
+    if (!shiftDown) {
+      this._sprintLocked = false;
+    }
+
+    const drainPerSec = CFG.PLAYER.STAMINA_DRAIN_PER_SEC ?? 35;
+    const hasStaminaForFrame = this._stamina > Math.max(0.1, drainPerSec * dt);
+    if (shiftDown && moving && !this._sprintLocked && !hasStaminaForFrame) {
+      this._sprintLocked = true;
+    }
+    const isRun = shiftDown && moving && hasStaminaForFrame && !this._sprintLocked;
     const speed = isRun ? p.RUN_SPEED : p.SPEED;
     this._sprite.body.setVelocity(vx * speed, vy * speed);
     this._updateStamina(isRun, dt);
+    if (isRun && this._stamina <= 0) this._sprintLocked = true;
 
     if (moving) {
       // Horizontal takes priority for facing

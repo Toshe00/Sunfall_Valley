@@ -99,6 +99,7 @@ class GameScene extends Phaser.Scene {
       this._schedulePlayerRespawn();
     });
     this.events.on('damage-player', (amount = 10) => this.damagePlayer(amount));
+    this.registry.set('playerHealth', { current: this._player.health, max: this._player.maxHealth });
     this.scene.get('UIScene')?._healthBar?.setHealth(this._player.health, this._player.maxHealth);
     this.registry.set('playerStamina', { current: this._player.stamina, max: this._player.maxStamina });
 
@@ -142,6 +143,8 @@ class GameScene extends Phaser.Scene {
     });
 
     this._interactKey = this.input.keyboard.addKey(CFG.KEY_INTERACT);
+    this._useItemKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    this.input.keyboard.addCapture(Phaser.Input.Keyboard.KeyCodes.E);
     this.input.on('pointerdown', this._handlePointerAttack, this);
     this.registry.set('fps', 0);
   }
@@ -169,6 +172,10 @@ class GameScene extends Phaser.Scene {
     this._farming.update();
     this._fruitTrees.update();
     this._enemySystem?.update(time, delta);
+
+    if (Phaser.Input.Keyboard.JustDown(this._useItemKey) && !this._player?.isDead && !this.registry.get('playerInputLocked')) {
+      this.useSelectedHotbarItem();
+    }
 
     if (Phaser.Input.Keyboard.JustDown(this._interactKey) && !this._player?.isDead && !this.registry.get('playerInputLocked')) {
       const activeKey = this.scene.get('UIScene')?._hotbar?.activeItem?.key ?? null;
@@ -206,6 +213,46 @@ class GameScene extends Phaser.Scene {
     return this._player?.takeDamage(amount) ?? false;
   }
 
+  useSelectedHotbarItem() {
+    const ui = this.scene.get('UIScene');
+    if (!ui || ui._inventory?.isOpen?.()) return false;
+
+    const hotbar = ui._hotbar;
+    const item = hotbar?.activeItem;
+    const def = CFG.CONSUMABLES?.[item?.key];
+    if (!item || !def) return false;
+
+    if ((item.qty ?? 0) < 1) {
+      hotbar?.clearActiveIfKey?.(item.key);
+      ui._showNotif?.(`${def.label ?? item.label ?? item.key} x0`, '#ffdd88');
+      return false;
+    }
+
+    const heal = Math.max(0, def.heal ?? 0);
+    if (heal <= 0) return false;
+
+    if (this._player.health >= this._player.maxHealth) {
+      ui._showNotif?.('Vie deja pleine', '#ffdd88');
+      return false;
+    }
+
+    const before = this._player.health;
+    this._player.heal(heal);
+    const healed = this._player.health - before;
+    if (healed <= 0) return false;
+
+    if (!hotbar?.consumeActiveItem?.(1)) return false;
+
+    this.registry.set('lastConsumedItem', {
+      key: item.key,
+      healed,
+      health: this._player.health,
+      maxHealth: this._player.maxHealth,
+    });
+    ui._showNotif?.(`+${healed} HP`, '#88ff88');
+    return true;
+  }
+
   _schedulePlayerRespawn() {
     if (this._playerRespawnEvent) return;
     this.registry.set('playerDead', true);
@@ -238,7 +285,7 @@ class GameScene extends Phaser.Scene {
       if (!target || target === this._player.sprite || target.active === false) continue;
       const bounds = this._getTargetBounds(target);
       if (!bounds || !Phaser.Geom.Intersects.RectangleToRectangle(rect, bounds)) continue;
-      if (this._damageEnemyTarget(target, CFG.PLAYER.ATTACK_DAMAGE ?? 25)) hits++;
+      if (this._damageEnemyTarget(target, this._player.attackDamage ?? CFG.PLAYER.ATTACK_DAMAGE ?? 25)) hits++;
     }
     return hits;
   }

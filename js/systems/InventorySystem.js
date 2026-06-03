@@ -52,7 +52,14 @@ class InventorySystem {
     });
   }
 
-  addItem(key, qty, label, iconKey = null) {
+  addItem(key, qty, label, iconKey = null, options = {}) {
+    const hotbar = this.scene._hotbar
+      ?? this.scene.scene?.get?.('UIScene')?._hotbar;
+    if (!options.forceInventory && hotbar?.addQuantityToExisting?.(key, qty, label, iconKey)) {
+      this._notifyHotbar();
+      return;
+    }
+
     const ex = this._items.find(i => i.key === key);
     if (ex) { ex.qty += qty; ex.label = label; if (iconKey) ex.iconKey = iconKey; }
     else     this._items.push({ key, qty, label, iconKey: iconKey || null });
@@ -78,6 +85,15 @@ class InventorySystem {
     this._items = this._items.filter(i => i.key !== key);
     if (this._open) this.refresh();
     this._notifyHotbar();
+  }
+
+  takeItemCompletely(key) {
+    const idx = this._items.findIndex(i => i.key === key);
+    if (idx < 0) return null;
+    const [item] = this._items.splice(idx, 1);
+    if (this._open) this.refresh();
+    this._notifyHotbar();
+    return item;
   }
 
   // Expose panel bounds so HotbarSystem can detect drops back onto inventory
@@ -187,6 +203,7 @@ class InventorySystem {
       const capturedKey   = item.key;
       const capturedLabel = item.label;
       const capturedIcon  = item.iconKey;
+      const capturedQty   = item.qty;
       let wasDragging = false;
 
       icon.setInteractive({ useHandCursor: true, draggable: true });
@@ -196,7 +213,7 @@ class InventorySystem {
         wasDragging = true;
         const hotbar = this.scene._hotbar;
         if (hotbar) {
-          hotbar.beginInventoryDrag(capturedKey, capturedLabel, capturedIcon, ptr.x, ptr.y);
+          hotbar.beginInventoryDrag(capturedKey, capturedLabel, capturedIcon, capturedQty, ptr.x, ptr.y);
         }
       });
 
@@ -216,9 +233,8 @@ class InventorySystem {
       this._container.add([icon, lbl, qtyBadge]);
     });
 
-    const totalPages = Math.ceil(this._items.length / PER_PAGE);
     this._prevBtn.setVisible(this._page > 0);
-    this._nextBtn.setVisible(this._items.length > PER_PAGE && this._page < totalPages - 1);
+    this._nextBtn.setVisible(true);
     this._updatePageIndicator();
   }
 
@@ -240,7 +256,7 @@ class InventorySystem {
 
   _updatePageIndicator() {
     const PER_PAGE = 20;
-    const total = Math.max(2, Math.ceil(this._items.length / PER_PAGE));
+    const total = Math.max(this._page + 2, Math.ceil(this._items.length / PER_PAGE));
     this._pageIndicator?.setText(
       Array.from({ length: total }, (_, i) => i === this._page ? '●' : '○').join(' ')
     );
@@ -272,11 +288,11 @@ class InventorySystem {
     this._container.add(this._pageIndicator);
 
     this._prevBtn = this._makeArrowBtn(
-      Math.round(18 * SC), Math.round(PH - 12), '◄',
+      Math.round(18 * SC), Math.round(PH - 28), '◄',
       () => { if (this._page > 0) { this._page--; this.refresh(); } }
     );
     this._nextBtn = this._makeArrowBtn(
-      Math.round(PW - 18 * SC), Math.round(PH - 12), '►',
+      Math.round(PW - 18 * SC), Math.round(PH - 28), '►',
       () => { this._page++; this.refresh(); }
     );
 
@@ -297,26 +313,35 @@ class InventorySystem {
 
   _makeArrowBtn(x, y, symbol, onClick) {
     const bg = this.scene.add.graphics().setDepth(53);
+    const w = 64;
+    const h = 40;
+    const r = 8;
     const draw = (hover) => {
       bg.clear();
       bg.fillStyle(hover ? 0x7a5030 : 0x5c3a1e, hover ? 0.95 : 0.85);
-      bg.fillRoundedRect(x - 16, y - 10, 32, 20, 5);
-      bg.lineStyle(1, hover ? 0xffd700 : 0xd4a84b, hover ? 1 : 0.8);
-      bg.strokeRoundedRect(x - 16, y - 10, 32, 20, 5);
+      bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, r);
+      bg.lineStyle(2, hover ? 0xffd700 : 0xd4a84b, hover ? 1 : 0.8);
+      bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, r);
     };
     draw(false);
 
     const txt = this.scene.add.text(x, y, symbol, {
       fontFamily: 'monospace', fontSize: '48px', fontStyle: 'bold',
       resolution: 2, color: '#f5dfa0',
-    }).setOrigin(0.5).setDepth(54).setInteractive({ useHandCursor: true }).setScale(0.25);
+    }).setOrigin(0.5).setDepth(54).setScale(0.5);
 
-    txt.on('pointerdown', onClick);
-    txt.on('pointerover', () => draw(true));
-    txt.on('pointerout',  () => draw(false));
+    const hit = this.scene.add.rectangle(x, y, w, h)
+      .setOrigin(0.5)
+      .setDepth(55)
+      .setFillStyle(0, 0)
+      .setInteractive({ useHandCursor: true });
 
-    this._container.add([bg, txt]);
-    const btn = { setVisible: (v) => { bg.setVisible(v); txt.setVisible(v); } };
+    hit.on('pointerdown', onClick);
+    hit.on('pointerover', () => draw(true));
+    hit.on('pointerout',  () => draw(false));
+
+    this._container.add([bg, txt, hit]);
+    const btn = { bg, txt, hit, setVisible: (v) => { bg.setVisible(v); txt.setVisible(v); hit.setVisible(v); } };
     btn.setVisible(false);
     return btn;
   }

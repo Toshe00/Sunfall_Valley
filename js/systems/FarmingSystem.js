@@ -92,7 +92,7 @@ class FarmingSystem {
           this._showNotif('That hole already has a crop!', '#ffcc44');
           return;
         }
-        if (!this.inventory.hasItem(this._selectedSeed)) {
+        if (!this._hasSeedStock(this._selectedSeed)) {
           this._showNotif('No seeds left!', '#ff8888');
           return;
         }
@@ -231,7 +231,7 @@ class FarmingSystem {
     const def = FarmingSystem.CROP_TYPES[seedKey];
     if (!def) return;
 
-    this.inventory.removeItem(seedKey, 1);
+    if (!this._consumeSeed(seedKey)) return;
 
     const slot = specificSlot ?? this._nextSlot(plot);
     const crop = {
@@ -265,6 +265,24 @@ class FarmingSystem {
     this._drawCropBar(crop);
 
     this._drawCapacityDots(plot.dots, plot.cx, plot.cy + plot.h/2 + 4, plot.capacity, plot.crops.length);
+
+    if (!this._hasSeedStock(seedKey)) this.clearSelectedSeed();
+  }
+
+  _getHotbar() {
+    return this.scene.scene?.get?.('UIScene')?._hotbar ?? null;
+  }
+
+  _hasSeedStock(seedKey) {
+    const hotbar = this._getHotbar();
+    return hotbar?.hasItem?.(seedKey, 1) || this.inventory.hasItem(seedKey, 1);
+  }
+
+  _consumeSeed(seedKey) {
+    const hotbar = this._getHotbar();
+    if (hotbar?.activeItem?.key === seedKey) return hotbar.consumeActiveItem(1);
+    if (hotbar?.consumeItem?.(seedKey, 1)) return true;
+    return this.inventory.removeItem(seedKey, 1);
   }
 
   _harvest(plot, crop) {
