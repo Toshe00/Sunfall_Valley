@@ -44,6 +44,10 @@ Progress:
 TODO:
 - No open TODOs.
 
+- Current prompt: Forcer le rendu visible des nouvelles icones Bronze Ore, Iron Ore et Gold Ore dans l'inventaire TAB et la hotbar.
+- Switched the three ore inventory textures to cache-busted Phaser keys inv_icon_bronze_ore_v2, inv_icon_iron_ore_v2, and inv_icon_gold_ore_v2. InventorySystem and HotbarSystem now resolve real item keys bronze/iron/gold to these versioned keys before any stale passed iconKey, fit those icons into fixed visible boxes, and center ore drag ghosts. MiningSystem now gives newly mined ore stacks the same versioned iconKey. Relevant script tags in index.html are versioned so the browser does not keep stale JS.
+- Verified against the already-running local server at http://127.0.0.1:8127/ without launching a new server: ore-icon-swap-test passes, confirms all three 32x32 textures load, inventory renders the new icon keys, drag ghosts fit, and hotbar slots render inv_icon_bronze_ore_v2 / inv_icon_iron_ore_v2 / inv_icon_gold_ore_v2. Visually inspected test-results/ore-icon-inventory-test.png and test-results/ore-icon-swap-test.png.
+
 - Current prompt: Ajouter une jauge de vie au-dessus des ennemis quand le joueur les tape, sans modifier gameplay/spawns/stats/controle.
 - Added per-enemy health bars in EnemySpawnSystem. Bars are created on damage from each enemy's hp/maxHp, follow the enemy, use high world depth, auto-hide after a short delay, and are destroyed on death/removal so respawned enemies start clean.
 - Verified with Playwright: enemy-health-bar-test confirms the fill width shrinks after repeated damage, death cleans the bar, respawn restores full HP with no stale bar, and damaging the respawned enemy recreates a fresh bar. sword-ui-test and the develop-web-game smoke client still pass for ZQSD/TAB/hotbar/sword-gated left-click attack and 20 enemy spawns.

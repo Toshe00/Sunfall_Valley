@@ -104,9 +104,9 @@ class BootScene extends Phaser.Scene {
 
     // ── Ore inventory icons ───────────────────────────────────────────────
     this.load.image('inv_icon_stone',  'assets/items/ore_tree/PNG/rocks/rock_small.png');
-    this.load.image('inv_icon_bronze', 'assets/items/ore_tree/PNG/bronze_ore_icon.png');
-    this.load.image('inv_icon_iron',   'assets/items/ore_tree/PNG/iron_ore_icon.png');
-    this.load.image('inv_icon_gold',   'assets/items/ore_tree/PNG/gold_ore_icon.png');
+    this.load.image('inv_icon_bronze_ore_v2', 'assets/items/ore_tree/PNG/bronze_ore_icon.png?v=ore-icons-20260603');
+    this.load.image('inv_icon_iron_ore_v2',   'assets/items/ore_tree/PNG/iron_ore_icon.png?v=ore-icons-20260603');
+    this.load.image('inv_icon_gold_ore_v2',   'assets/items/ore_tree/PNG/gold_ore_icon.png?v=ore-icons-20260603');
     // Undead ore inventory icon — the small crystal from the right extension
     this.load.image('inv_icon_undead_ore',
       'assets/world/craftpix-net-695666-free-undead-tileset-top-down-pixel-art/PNG/Objects_separately/Crystal_shadow1_3.png');

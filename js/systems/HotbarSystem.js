@@ -128,6 +128,13 @@ class HotbarSystem {
           color:'#ffffff', stroke:'#000000', strokeThickness:6 }
       ).setOrigin(1, 1).setScrollFactor(0).setDepth(84).setScale(0.5);
 
+      const keyLabel = this.scene.add.text(
+        0, 0, `${i + 1}`,
+        { fontFamily:'Arial', fontSize:'28px', fontStyle:'bold', resolution:2,
+          color:'#ffffff', stroke:'#000000', strokeThickness:6,
+          shadow: { offsetX:1, offsetY:2, color:'#000000', blur:2, fill:true } }
+      ).setOrigin(0.5, 1).setScrollFactor(0).setDepth(86).setScale(0.5);
+
       const zone = this.scene.add.rectangle(0, 0, SZ, SZ)
         .setScrollFactor(0).setDepth(85)
         .setInteractive({ useHandCursor: true, draggable: true });
@@ -144,7 +151,7 @@ class HotbarSystem {
       zone.on('drag',      (ptr) => this._onPointerMove(ptr));
       zone.on('dragend',   (ptr) => this._onPointerUp(ptr));
 
-      this._ui.push({ hl, icon, qty, zone, cx:0, cy:0, rect:new Phaser.Geom.Rectangle(0, 0, SZ, SZ) });
+      this._ui.push({ hl, icon, qty, keyLabel, zone, cx:0, cy:0, rect:new Phaser.Geom.Rectangle(0, 0, SZ, SZ) });
     }
 
     this.scene.input.on('pointermove', (ptr) => {
@@ -197,6 +204,7 @@ class HotbarSystem {
 
       ui.icon.setPosition(cx, cy).setScrollFactor(0);
       ui.qty.setPosition(cx + SZ/2 - 1, cy + SZ/2 - 1).setScrollFactor(0);
+      ui.keyLabel.setPosition(cx, cy - SZ/2 - 5).setScrollFactor(0);
       ui.zone.setPosition(cx, cy).setScrollFactor(0);
       ui.glowRect?.setPosition(cx, cy).setScrollFactor(0);
     }
@@ -232,10 +240,11 @@ class HotbarSystem {
       const tex = this._resolveIcon(slot.key, slot.iconKey);
       if (tex && this.scene.textures.exists(tex)) {
         const src  = this.scene.textures.get(tex).source[0];
-        const maxS = SZ - 8;
+        const maxS = this._isOreIconItem(slot.key) ? 48 : SZ - 8;
         const sc   = Math.min(maxS / src.width, maxS / src.height, 2.0);
         ui.icon
           .setTexture(tex)
+          .setOrigin(0.5)
           .setDisplaySize(Math.round(src.width * sc), Math.round(src.height * sc))
           .setPosition(ui.cx, ui.cy)
           .setVisible(true);
@@ -355,7 +364,12 @@ class HotbarSystem {
     const tex = this._resolveIcon(info.key, info.iconKey);
     if (tex && this.scene.textures.exists(tex)) {
       this._dragImg = this.scene.add.image(px, py, tex)
-        .setScrollFactor(0).setDepth(200).setAlpha(0.88).setScale(3.0);
+        .setScrollFactor(0).setDepth(200).setAlpha(0.88);
+      if (this._isOreIconItem(info.key)) {
+        this._fitImageInBox(this._dragImg, tex, 48, 48);
+      } else {
+        this._dragImg.setScale(3.0);
+      }
     }
   }
 
@@ -499,13 +513,30 @@ class HotbarSystem {
     if (!key) return null;
     const base = key.replace(/_harvested$|_crop$/, '');
     const oreIconOverride = {
-      bronze: 'inv_icon_bronze',
-      iron: 'inv_icon_iron',
-      gold: 'inv_icon_gold',
+      bronze: 'inv_icon_bronze_ore_v2',
+      iron: 'inv_icon_iron_ore_v2',
+      gold: 'inv_icon_gold_ore_v2',
     }[base];
     const tries = oreIconOverride ? [oreIconOverride] : [];
     if (passedKey) tries.push(passedKey);
     tries.push(`seed_icon_${key}`, `inv_icon_${base}`, key);
     return tries.find(k => k && this.scene.textures.exists(k)) ?? null;
   }
+
+  _isOreIconItem(itemKey) {
+    return ['bronze', 'iron', 'gold'].includes(itemKey);
+  }
+
+  _fitImageInBox(image, textureKey, maxW, maxH) {
+    const src = this.scene.textures.get(textureKey)?.source?.[0];
+    if (!src?.width || !src?.height) return image;
+
+    const scale = Math.min(maxW / src.width, maxH / src.height);
+    const displayW = Math.max(1, Math.round(src.width * scale));
+    const displayH = Math.max(1, Math.round(src.height * scale));
+    return image
+      .setOrigin(0.5)
+      .setDisplaySize(displayW, displayH);
+  }
+
 }

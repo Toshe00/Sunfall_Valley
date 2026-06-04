@@ -203,9 +203,9 @@ class InventorySystem {
     const base = itemKey.replace(/_harvested$|_crop$/, '');
     const isHarvested = itemKey.endsWith('_harvested') || itemKey.endsWith('_crop');
     const oreIconOverride = {
-      bronze: 'inv_icon_bronze',
-      iron: 'inv_icon_iron',
-      gold: 'inv_icon_gold',
+      bronze: 'inv_icon_bronze_ore_v2',
+      iron: 'inv_icon_iron_ore_v2',
+      gold: 'inv_icon_gold_ore_v2',
     }[base];
     const candidates = oreIconOverride ? [oreIconOverride] : [];
     if (passedIconKey) candidates.push(passedIconKey);
@@ -218,6 +218,22 @@ class InventorySystem {
       if (k && this.scene.textures.exists(k)) return k;
     }
     return null;
+  }
+
+  _isOreIconItem(itemKey) {
+    return ['bronze', 'iron', 'gold'].includes(itemKey);
+  }
+
+  _fitImageInBox(image, textureKey, maxW, maxH) {
+    const src = this.scene.textures.get(textureKey)?.source?.[0];
+    if (!src?.width || !src?.height) return image;
+
+    const scale = Math.min(maxW / src.width, maxH / src.height);
+    const displayW = Math.max(1, Math.round(src.width * scale));
+    const displayH = Math.max(1, Math.round(src.height * scale));
+    return image
+      .setOrigin(0.5)
+      .setDisplaySize(displayW, displayH);
   }
 
   refresh() {
@@ -251,9 +267,13 @@ class InventorySystem {
         const maxScale = Math.min(ICON_MAX / natW, ICON_MAX / natH);
         const scale    = Math.max(1, Math.floor(maxScale));
         icon = this.scene.add.image(cx, cy + ICON_OY, texKey)
-          .setScale(scale)
           .setDepth(52)
           .setInteractive({ useHandCursor: true });
+        if (this._isOreIconItem(item.key)) {
+          this._fitImageInBox(icon, texKey, Math.round(9 * SC), Math.round(9 * SC));
+        } else {
+          icon.setScale(scale);
+        }
       } else {
         const color = CFG.FARMING?.SEEDS?.[item.key]?.color ?? 0x888888;
         const hs = ICON_MAX / 2;

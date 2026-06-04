@@ -11,9 +11,9 @@ class MiningSystem {
 
   static ORE_TYPES = {
     mineable_stones:        { label:'Stone',         drop:'stone',       yield:2, hits:3, pickKey:'stone_pickaxe',  color:0x9aabbf, respawnMs: 60_000, iconKey:'inv_icon_stone'       },
-    mineable_bronzes:       { label:'Bronze',        drop:'bronze',      yield:2, hits:3, pickKey:'stone_pickaxe',  color:0xcd7f32, respawnMs: 75_000, iconKey:'inv_icon_bronze'      },
-    mineable_iron:          { label:'Iron',          drop:'iron',        yield:2, hits:4, pickKey:'bronze_pickaxe', color:0xa8a9ad, respawnMs: 90_000, iconKey:'inv_icon_iron'        },
-    mineable_gold:          { label:'Gold',          drop:'gold',        yield:1, hits:5, pickKey:'iron_pickaxe',   color:0xffd700, respawnMs:120_000, iconKey:'inv_icon_gold'        },
+    mineable_bronzes:       { label:'Bronze',        drop:'bronze',      yield:2, hits:3, pickKey:'stone_pickaxe',  color:0xcd7f32, respawnMs: 75_000, iconKey:'inv_icon_bronze_ore_v2' },
+    mineable_iron:          { label:'Iron',          drop:'iron',        yield:2, hits:4, pickKey:'bronze_pickaxe', color:0xa8a9ad, respawnMs: 90_000, iconKey:'inv_icon_iron_ore_v2'   },
+    mineable_gold:          { label:'Gold',          drop:'gold',        yield:1, hits:5, pickKey:'iron_pickaxe',   color:0xffd700, respawnMs:120_000, iconKey:'inv_icon_gold_ore_v2'   },
     // ── Right extension ore (skeleton dungeon) ────────────────────────────
     undead_minable_stones:  { label:'Undead Crystal',drop:'undead_ore',  yield:2, hits:4, pickKey:'gold_pickaxe',   color:0x6a4c7c, respawnMs:150_000, iconKey:'inv_icon_undead_ore'  },
     // ── Top extension ore (volcano / lava area) ───────────────────────────
