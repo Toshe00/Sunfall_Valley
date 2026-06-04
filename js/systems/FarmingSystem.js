@@ -195,35 +195,9 @@ class FarmingSystem {
   }
 
   updateLabels() {
-    const px = this.player.x, py = this.player.y;
-    const dist = CFG.PLAYER.INTERACT_DIST * 1.1;
-    let closest = null, closestDist = dist;
-    
     for (const p of this._plots) {
-      const d = Phaser.Math.Distance.Between(px, py, p.cx, p.cy);
-      if (d < closestDist) { closestDist = d; closest = p; }
-    }
-    
-    for (const p of this._plots) {
-      const isClosest = p === closest;
       if (!p.label) continue;
-      if (!isClosest) { p.label.setVisible(false); continue; }
-
-      const harvReady = p.crops.filter(c => FarmingSystem.CROP_TYPES[c.key] && c.stage >= FarmingSystem.CROP_TYPES[c.key].stages).length;
-      const growing   = p.crops.filter(c => FarmingSystem.CROP_TYPES[c.key] && c.stage < FarmingSystem.CROP_TYPES[c.key].stages).length;
-      const empty     = p.capacity - p.crops.length;
-
-      let msg = '';
-      if (harvReady > 0) msg += `[F] Harvest (${harvReady} ready)`;
-      else if (this._selectedSeed && empty > 0) msg += `Click a hole to plant ${FarmingSystem.CROP_TYPES[this._selectedSeed]?.label}`;
-      else if (growing > 0) msg += `Growing (${growing}/${p.capacity})`;
-      else msg += `Empty plot (${p.capacity} slots)`;
-      
-      p.label.setText(msg.trim())
-             .setStyle({
-               fontFamily: 'Arial, sans-serif', fontSize: '11px', fontStyle: 'bold',
-               fill: harvReady > 0 ? '#55ff55' : '#ffffff', stroke: '#000000', strokeThickness: 3, resolution: 2
-             }).setVisible(true);
+      p.label.setVisible(false);
     }
   }
 
@@ -428,7 +402,7 @@ class FarmingSystem {
     const label = this.scene.add.text(cx, labelY, '', {})
       .setOrigin(0.5).setDepth(9999).setVisible(false).setScale(0.5);
 
-    const dots = this.scene.add.graphics().setDepth(9050);
+    const dots = this.scene.add.graphics().setDepth(9050).setVisible(false);
     this._drawCapacityDots(dots, cx, cy + h/2 + 4, capacity, 0);
 
     const tempPlot = { cx, cy, w, h }; // Everything else now builds off this new shifted `cx`
@@ -465,22 +439,7 @@ class FarmingSystem {
 
   _drawCapacityDots(g, x, y, total, filled) {
     g.clear();
-    const dotR = 2.5, gap = 8;
-    const startX = x - ((total-1)*gap)/2;
-    
-    g.fillStyle(0x111111, 0.6);
-    g.fillRoundedRect(startX - 6, y - 5, (total-1)*gap + 12, 10, 5);
-
-    for (let i = 0; i < total; i++) {
-      const isFilled = i < filled;
-      g.fillStyle(isFilled ? 0x55ff55 : 0x224422, isFilled ? 1.0 : 0.8);
-      g.fillCircle(startX + i*gap, y, dotR);
-      
-      if (isFilled) {
-        g.fillStyle(0xaaffaa, 0.4);
-        g.fillCircle(startX + i*gap, y, dotR + 1.5);
-      }
-    }
+    g.setVisible(false);
   }
 
   _buildSeedHUD() {}

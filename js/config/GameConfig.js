@@ -392,7 +392,7 @@ const CFG = {
     RESPAWN_MS: 5 * 60 * 1000,
     SPAWNS: [
       { type: 'slime', tileX: 55, tileY: 111 },
-      { type: 'slime', tileX: 79, tileY: 112 },
+      { type: 'slime', tileX: 37, tileY: 107 },
       { type: 'slime', tileX: 101, tileY: 112 },
       { type: 'goblin', tileX: 114, tileY: 92 },
       { type: 'goblin', tileX: 55, tileY: 77 },
