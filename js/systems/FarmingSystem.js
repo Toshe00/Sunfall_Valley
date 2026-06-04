@@ -36,7 +36,7 @@ class FarmingSystem {
 
   static CROP_TYPES = {
     blue_berries: { label:'Blue Berries', growthMs:15_000, stages:3, iconKey:'seed_icon_blue_berries', color: 0x4a7eb0 },
-    brinjal:      { label:'Egg Plant',    growthMs:25_000, stages:4, iconKey:'seed_icon_EggPlant',     color: 0x7a4382 },
+    brinjal:      { label:'Egg Plant',    growthMs:25_000, stages:4, iconKey:'seed_icon_brinjal',      color: 0x7a4382 },
     corn:         { label:'Corn',         growthMs:30_000, stages:4, iconKey:'seed_icon_corn',         color: 0xffd700 },
     pumpkin:      { label:'Pumpkin',      growthMs:40_000, stages:3, iconKey:'seed_icon_pumpkin',      color: 0xe67e22 },
     red_berries:  { label:'Red Berries',  growthMs:12_000, stages:3, iconKey:'seed_icon_red_berries',  color: 0xe74c3c },
@@ -187,6 +187,10 @@ class FarmingSystem {
     });
     
     if (harvestable) {
+      if (!this._isHarvestToolSelected()) {
+        this._showNotif('Scythe required', '#ffdd88');
+        return false;
+      }
       this._harvest(closest, harvestable);
       return true;
     }
@@ -245,6 +249,11 @@ class FarmingSystem {
 
   _getHotbar() {
     return this.scene.scene?.get?.('UIScene')?._hotbar ?? null;
+  }
+
+  _isHarvestToolSelected() {
+    const item = this._getHotbar()?.activeItem;
+    return item?.key === 'harvest_scythe' || item?.label === 'Scythe';
   }
 
   _hasSeedStock(seedKey) {

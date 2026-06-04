@@ -324,6 +324,7 @@ class HotbarSystem {
     const isAxe  = item.key.endsWith('_axe');
     const isPick = item.key.endsWith('_pickaxe');
     const isSword = item.key === 'sword';
+    const isScythe = item.key === 'harvest_scythe';
 
     if (isSeed) {
       farming?.selectSeed?.(item.key);
@@ -337,9 +338,9 @@ class HotbarSystem {
       farming?.clearSelectedSeed?.();
       gs?.registry?.set?.('activeSeed', null);
       gs?.registry?.set?.('activeTool', item.key);
-      if (isAxe || isPick || isSword) {
+      if (isAxe || isPick || isSword || isScythe) {
         const label = item.label ?? item.key;
-        const prefix = isSword ? '' : '🪓 ';
+        const prefix = (isSword || isScythe) ? '' : '🪓 ';
         uiScene._showNotif?.(`${prefix}${label} equipped`, '#ffdd44');
       }
     }

@@ -76,6 +76,7 @@ class BootScene extends Phaser.Scene {
 
     // Sword
     this.load.image('sword', 'assets/items/weapon_icon_2/Icons/Icon_4_06.png');
+    this.load.image('harvest_scythe', 'assets/items/weapons/icons_29_03.png');
 
     // ── Crop sheets + harvest icons ───────────────────────────────────────
     const cropKeys = Object.keys(FarmingSystem.CROP_TYPES);
@@ -87,7 +88,7 @@ class BootScene extends Phaser.Scene {
     // ── Seed icons ────────────────────────────────────────────────────────
     const seedIconMap = {
       blue_berries: 'blueberry_seeds',
-      EggPlant:     'brinjal_seeds',
+      brinjal:      'icons_29_100',
       corn:         'corn_seeds',
       pumpkin:      'pumpkin_seeeds',
       red_berries:  'redberries_seeds',

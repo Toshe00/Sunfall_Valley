@@ -30,6 +30,7 @@ class UIScene extends Phaser.Scene {
 
     // Weapon
     this._inventory.addItem('sword', 1, 'Epee', 'sword');
+    this._inventory.addItem('harvest_scythe', 1, 'Scythe', 'harvest_scythe');
 
     // ── Hotbar ────────────────────────────────────────────────────────────
     this._hotbar = new HotbarSystem(this, this._inventory);
