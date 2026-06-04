@@ -121,6 +121,12 @@ class BootScene extends Phaser.Scene {
     this.load.image('inv_icon_walnut_wood', 'assets/items/ore_tree/PNG/wallnut_wood_icon.png');
     this.load.image('inv_icon_ancient_wood','assets/items/ore_tree/PNG/ancient_wood_icon.png');
     this.load.image('inv_icon_apple',       'assets/items/inventory/Apple_HL.png');
+    this.load.image('pine_plank_icon',      'assets/items/crafting/Pine Plank.png');
+    this.load.image('walnut_plank_icon',    'assets/items/crafting/Walnut Plank.png');
+    this.load.image('ancient_plank_icon',   'assets/items/crafting/Ancient Plank.png');
+    this.load.image('bronze_ingot_icon',    'assets/items/crafting/Bronze ingot.png');
+    this.load.image('iron_ingot_icon',      'assets/items/crafting/Iron ingot.png');
+    this.load.image('gold_ingot_icon',      'assets/items/crafting/Gold ingot.png');
 
     // ── Helper: register a dynamic-prop image under key "dp_<resolvedPath>" ─
     const _dp = (path) => this._queueImageOnce('dp_' + path, path);

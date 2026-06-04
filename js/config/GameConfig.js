@@ -202,9 +202,91 @@ for (let level = 4; level <= 9; level++) {
   };
 }
 
+const ITEM_DEFS = {
+  pine_plank: {
+    id: 'pine_plank',
+    name: 'Pine Plank',
+    iconKey: 'pine_plank_icon',
+    craftFrom: [{ itemId: 'pine_wood', quantity: 2 }],
+  },
+  walnut_plank: {
+    id: 'walnut_plank',
+    name: 'Walnut Plank',
+    iconKey: 'walnut_plank_icon',
+    craftFrom: [{ itemId: 'walnut_wood', quantity: 2 }],
+  },
+  ancient_plank: {
+    id: 'ancient_plank',
+    name: 'Ancient Plank',
+    iconKey: 'ancient_plank_icon',
+    craftFrom: [{ itemId: 'ancient_wood', quantity: 2 }],
+  },
+  bronze_ingot: {
+    id: 'bronze_ingot',
+    name: 'Bronze Ingot',
+    iconKey: 'bronze_ingot_icon',
+    craftFrom: [{ itemId: 'bronze_ore', quantity: 2 }],
+  },
+  iron_ingot: {
+    id: 'iron_ingot',
+    name: 'Iron Ingot',
+    iconKey: 'iron_ingot_icon',
+    craftFrom: [{ itemId: 'iron_ore', quantity: 2 }],
+  },
+  gold_ingot: {
+    id: 'gold_ingot',
+    name: 'Gold Ingot',
+    iconKey: 'gold_ingot_icon',
+    craftFrom: [{ itemId: 'gold_ore', quantity: 2 }],
+  },
+};
+
+const CRAFTING_RECIPES_DISABLED = {
+  pine_plank: {
+    id: 'pine_plank',
+    enabled: false,
+    output: { itemId: 'pine_plank', quantity: 1 },
+    ingredients: [{ itemId: 'pine_wood', quantity: 2 }],
+  },
+  walnut_plank: {
+    id: 'walnut_plank',
+    enabled: false,
+    output: { itemId: 'walnut_plank', quantity: 1 },
+    ingredients: [{ itemId: 'walnut_wood', quantity: 2 }],
+  },
+  ancient_plank: {
+    id: 'ancient_plank',
+    enabled: false,
+    output: { itemId: 'ancient_plank', quantity: 1 },
+    ingredients: [{ itemId: 'ancient_wood', quantity: 2 }],
+  },
+  bronze_ingot: {
+    id: 'bronze_ingot',
+    enabled: false,
+    output: { itemId: 'bronze_ingot', quantity: 1 },
+    ingredients: [{ itemId: 'bronze_ore', quantity: 2 }],
+  },
+  iron_ingot: {
+    id: 'iron_ingot',
+    enabled: false,
+    output: { itemId: 'iron_ingot', quantity: 1 },
+    ingredients: [{ itemId: 'iron_ore', quantity: 2 }],
+  },
+  gold_ingot: {
+    id: 'gold_ingot',
+    enabled: false,
+    output: { itemId: 'gold_ingot', quantity: 1 },
+    ingredients: [{ itemId: 'gold_ore', quantity: 2 }],
+  },
+};
+
 const CFG = {
   DEBUG_GRID,
   CONSUMABLES,
+  ITEMS: ITEM_DEFS,
+  CRAFTING: {
+    RECIPES_DISABLED: CRAFTING_RECIPES_DISABLED,
+  },
 
   // ── Map ──────────────────────────────────────────────────────────────────
   MAP_JSON : 'assets/world/2dmap.json?v=2',

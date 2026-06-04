@@ -520,6 +520,8 @@ class HotbarSystem {
     }[base];
     const tries = oreIconOverride ? [oreIconOverride] : [];
     if (passedKey) tries.push(passedKey);
+    const configuredIconKey = CFG.ITEMS?.[key]?.iconKey;
+    if (configuredIconKey) tries.push(configuredIconKey);
     tries.push(`seed_icon_${key}`, `inv_icon_${base}`, key);
     return tries.find(k => k && this.scene.textures.exists(k)) ?? null;
   }

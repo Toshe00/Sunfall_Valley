@@ -209,6 +209,8 @@ class InventorySystem {
     }[base];
     const candidates = oreIconOverride ? [oreIconOverride] : [];
     if (passedIconKey) candidates.push(passedIconKey);
+    const configuredIconKey = CFG.ITEMS?.[itemKey]?.iconKey;
+    if (configuredIconKey) candidates.push(configuredIconKey);
     if (isHarvested) {
       candidates.push(`inv_icon_${base}`, `crop_${base}`, `seed_icon_${base}`);
     } else {
